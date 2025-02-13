@@ -182,6 +182,11 @@ async function onclick_() {
             }
             compileButton.disabled = false;
             compileButton.innerText = "Compile";
+
+            // on finishing compilation, focus on preview
+            previewContainer.style.zIndex = '2';
+            editorContainer.style.zIndex = '1';    
+
             console.log('Compilation successful');
         }
 
