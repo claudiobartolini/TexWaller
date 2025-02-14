@@ -20,11 +20,10 @@ body {
     height: 5%;
 }
 
-/* General button styles */
 button {
     padding: 10px 20px;
     border: none;
-    background-color: #28a745; /* Changed to green */
+    background-color: #007bff;
     color: white;
     cursor: pointer;
     border-radius: 5px;
@@ -34,35 +33,27 @@ button {
 }
 
 button:hover {
-    background-color: #218838; /* Darker green on hover */
+    background-color: #0056b3;
     transform: scale(1.05);
 }
 
 /* Main container */
 .container {
-    position: relative;
     display: flex;
-    height: calc(100vh - 65px); /* Reduced space */
-    padding: 10px 10px 0 10px; /* Reduced padding */
+    flex: 1;
+    height: calc(100% - 60px); /* Account for compile button */
+    padding: 15px;
+    gap: 15px;
     min-height: 0;
 }
 
 /* Editor section */
 #editor-container {
-    position: absolute;
-    width: 75%;
-    left: 0;
-    height: calc(100% - 45px); /* Reduced space for button */
+    width: 50%;
     display: flex;
     flex-direction: column;
     gap: 10px;
     min-height: 0;
-    transition: z-index 0.1s;
-    z-index: 2; /* Start with editor on top */
-    background-color: #2d2d2d; /* Slightly lighter than before */
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 #tex-editor, #bib-editor {
@@ -80,18 +71,9 @@ button:hover {
 
 /* Preview container and iframe */
 #preview-container {
-    position: absolute;
-    width: 75%;
-    right: 0;
-    height: calc(100% - 45px); /* Reduced space for button */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-height: 0;
-    transition: z-index 0.1s;
-    z-index: 1; /* Start with preview behind */
-    border-radius: 10px;
-    padding: 10px;
+    width: 50%;
+    height: 100%;
+    position: relative;  /* Required for absolute positioning of spinner */
 }
 
 #preview {
@@ -108,26 +90,21 @@ button:hover {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: calc(100% - 10px);   /* Full width minus 5px margin on each side */
-    height: calc(100% - 10px);  /* Full height minus 5px margin on each side */
-    display: none;
-    z-index: 1000;
+    width: calc(100% - 10px);  /* Full width minus 5px margin on each side */
+    display: none;  /* Hidden by default */
+    z-index: 1000;  /* Ensure spinner appears above preview */
 }
 
 #spinner img {
     width: 100%;
-    height: 100%;
-    object-fit: contain;  /* Maintain aspect ratio while fitting within bounds */
+    height: auto;
 }
 
 /* Compile button */
 .compile {
-    position: fixed;
-    bottom: 10px; /* Reduced from 15px */
-    left: 50%;
-    transform: translateX(-50%) scale(1); /* Combine transform properties */
-    width: calc(100% - 20px); /* Reduced from 30px */
-    height: 35px; /* Reduced from 40px */
+    width: calc(100% - 30px);
+    height: 40px;
+    margin: 10px 15px;
     border: none;
     border-radius: 10px;
     background-color: #28a745;
@@ -139,5 +116,4 @@ button:hover {
 
 .compile:hover {
     background-color: #218838;
-    transform: translateX(-50%) scale(1.05); /* Keep centered while scaling */
 }

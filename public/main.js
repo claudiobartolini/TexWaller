@@ -230,43 +230,32 @@ require(['vs/editor/editor.main'], async function() {
         }
     });
 
-    // Create editors with automaticLayout: true
+    // Initialize Monaco Editor
     texEditor = monaco.editor.create(document.getElementById('tex-editor'), {
         value: texContent,
         language: 'latex',
         theme: 'vs-dark',
-        wordWrap: 'on',
-        automaticLayout: true  // Enable automatic layout updates
+        wordWrap: "on"
     });
 
     bibEditor = monaco.editor.create(document.getElementById('bib-editor'), {
         value: bibContent,
-        language: 'bibtex',
+        language: 'latex',
         theme: 'vs-dark',
-        wordWrap: 'on',
-        automaticLayout: true  // Enable automatic layout updates
+        wordWrap: "on"
+    });
+
+    // ✅ Add Debounced ResizeObserver to Prevent Loops
+    let resizeTimeout;
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            texEditor.layout();
+            bibEditor.layout();
+        }, 300);  // Adjust delay as needed (300ms is a good default)
     });
 
     // Auto-save when users type
     texEditor.onDidChangeModelContent(startAutoSaveDebounced);
     bibEditor.onDidChangeModelContent(startAutoSaveDebounced);
-
-    // Add after editor initialization
-    const editorContainer = document.getElementById('editor-container');
-    const previewContainer = document.getElementById('preview-container');
-
-    // Handle editor focus
-    editorContainer.addEventListener('mouseenter', () => {
-        editorContainer.style.zIndex = '2';
-        previewContainer.style.zIndex = '1';
-    });
-
-    // Handle preview focus
-    previewContainer.addEventListener('mouseenter', () => {
-        previewContainer.style.zIndex = '2';
-        editorContainer.style.zIndex = '1';
-    });
-
-    // Set initial focus to editor
-    texEditor.focus();
 });
