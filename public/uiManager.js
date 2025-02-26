@@ -88,58 +88,57 @@ function getItemPath(element) {
 
 // Add the moveItem function
 function moveItem(sourcePath, targetPath, isFolder) {
-    const states = getFolderStates();
-    const currentFiles = getCurrentProjectFiles();
-    
-    if (isFolder) {
-        // Move folder in explorer tree
-        const sourceContent = explorerTree.Projects[sourcePath];
-        if (sourceContent) {
-            delete explorerTree.Projects[sourcePath];
-            
-            if (!explorerTree.Projects[targetPath]) {
-                explorerTree.Projects[targetPath] = {};
-            }
-            explorerTree.Projects[targetPath][sourcePath] = sourceContent;
-        }
-    } else {
-        // Move file within current project
-        if (currentFiles) {
-            // Get source file content from current location
-            let sourceContent;
-            if (explorerTree.Projects[sourcePath]) {
-                sourceContent = explorerTree.Projects[sourcePath];
-                delete explorerTree.Projects[sourcePath];
-            } else {
-                // Look for file in subfolders
-                for (const folder in explorerTree.Projects) {
-                    if (explorerTree.Projects[folder] && 
-                        explorerTree.Projects[folder][sourcePath]) {
-                        sourceContent = explorerTree.Projects[folder][sourcePath];
-                        delete explorerTree.Projects[folder][sourcePath];
-                        break;
-                    }
-                }
-            }
+    try {
+        const states = getFolderStates();
+        const currentFiles = getCurrentProjectFiles();
+        
+        if (!currentFiles) return;
 
-            if (sourceContent) {
-                // Move to new location
-                if (targetPath === "Projects") {
-                    explorerTree.Projects[sourcePath] = sourceContent;
-                } else {
-                    if (!explorerTree.Projects[targetPath]) {
-                        explorerTree.Projects[targetPath] = {};
-                    }
-                    explorerTree.Projects[targetPath][sourcePath] = sourceContent;
-                }
-
-                // Update current project's file structure
-                currentFiles[sourcePath] = sourceContent;
-            }
+        if (isFolder) {
+            moveFolder(sourcePath, targetPath);
+        } else {
+            moveFile(sourcePath, targetPath, currentFiles);
         }
+        
+        updateUIAfterChange(states);
+    } catch (error) {
+        console.error('Error moving item:', error);
+        alert('Failed to move item. Please try again.');
     }
+}
+
+// 4. Helper functions for file operations
+function moveFolder(sourcePath, targetPath) {
+    const content = explorerTree.Projects[sourcePath];
+    if (!content) return;
     
-    // Save changes and update UI
+    delete explorerTree.Projects[sourcePath];
+    
+    if (!explorerTree.Projects[targetPath]) {
+        explorerTree.Projects[targetPath] = {};
+    }
+    explorerTree.Projects[targetPath][sourcePath] = content;
+}
+
+function moveFile(sourcePath, targetPath, currentFiles) {
+    const content = currentFiles[sourcePath];
+    if (!content) return;
+    
+    delete currentFiles[sourcePath];
+    
+    if (targetPath) {
+        if (!explorerTree.Projects[targetPath]) {
+            explorerTree.Projects[targetPath] = {};
+        }
+        explorerTree.Projects[targetPath][sourcePath] = content;
+    } else {
+        explorerTree.Projects[sourcePath] = content;
+    }
+
+    currentFiles[sourcePath] = content;
+}
+
+function updateUIAfterChange(states) {
     renderFileExplorer(document.getElementById('file-tree'), explorerTree);
     applyFolderStates(states);
     persistCurrentProjectToFirestore();
