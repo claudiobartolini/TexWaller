@@ -147,8 +147,7 @@ function updateUIAfterChange(states) {
 // Modify the renderFileExplorer function to handle UI state
 export function renderFileExplorer(container, structure, savedState = {}) {
     container.innerHTML = "";
-
-    // Ensure "Projects" root exists before rendering
+    
     if (!structure.Projects) {
         structure.Projects = {};
     }
@@ -156,9 +155,8 @@ export function renderFileExplorer(container, structure, savedState = {}) {
     const ul = document.createElement("ul");
     ul.className = "file-tree";
 
-    function createTree(obj, parentUl) {
-        // Separate folders and files
-        const entries = Object.entries(obj);
+    function createTree(obj, parentUl, parentPath = '') {
+        const entries = Object.entries(obj || {});
         const folders = entries.filter(([_, value]) => typeof value === 'object');
         const files = entries.filter(([_, value]) => typeof value !== 'object');
         
@@ -167,162 +165,30 @@ export function renderFileExplorer(container, structure, savedState = {}) {
             const li = document.createElement("li");
             li.className = "folder";
             
-            const itemContent = document.createElement("div");
-            itemContent.className = "file-item";
-            itemContent.draggable = true;
+            const currentPath = parentPath ? `${parentPath}/${key}` : key;
+            const itemContent = createFolderContent(key, savedState[currentPath]);
+            const subUl = createSubFolder();
+            const chevron = itemContent.querySelector('.codicon-chevron-right');
             
-            // Add drag event listeners for folders
-            itemContent.addEventListener('dragstart', (e) => {
-                e.stopPropagation();
-                e.dataTransfer.setData('text/plain', JSON.stringify({
-                    path: getItemPath(itemContent),
-                    isFolder: true
-                }));
-                itemContent.classList.add('dragging');
-            });
-            
-            itemContent.addEventListener('dragend', () => {
-                itemContent.classList.remove('dragging');
-            });
-            
-            itemContent.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const targetPath = getItemPath(itemContent);
-                if (targetPath === 'Projects') {
-                    e.dataTransfer.dropEffect = 'none'; // Show 'not-allowed' cursor
-                    return; // Don't add drag-over class for Projects root
-                }
-                
-                itemContent.classList.add('drag-over');
-            });
-            
-            itemContent.addEventListener('dragleave', () => {
-                itemContent.classList.remove('drag-over');
-            });
-            
-            itemContent.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                itemContent.classList.remove('drag-over');
-                
-                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                const targetPath = getItemPath(itemContent);
-                
-                // Prevent dropping into descendant or directly under Projects
-                if ((data.isFolder && isDescendant(data.path, targetPath)) || 
-                    targetPath === 'Projects') {
-                    return;
-                }
-                
-                // Move the item
-                moveItem(data.path, targetPath, data.isFolder);
-            });
-            
-            const chevron = document.createElement("span");
-            chevron.className = "codicon codicon-chevron-right";
-            
-            const label = document.createElement("span");
-            label.textContent = key;
-            
-            itemContent.appendChild(chevron);
-            itemContent.appendChild(label);
-            
-            const subUl = document.createElement("ul");
-            subUl.style.display = "none";
+            addDragHandlers(itemContent, currentPath, true);
+            addFolderClickHandler(itemContent, subUl, chevron);
+            addContextMenuHandlers(itemContent, true);
             
             li.appendChild(itemContent);
             li.appendChild(subUl);
             
-            // When creating folder items, check saved state
-            const folderPath = getItemPath(itemContent);
-            if (savedState[folderPath]) {
-                subUl.style.display = "block";
-                itemContent.classList.add("expanded");
-                chevron.style.transform = "rotate(90deg)";
-            }
-
-            itemContent.addEventListener("click", async (e) => {
-                e.stopPropagation();
-                const isExpanded = subUl.style.display !== "none";
-                subUl.style.display = isExpanded ? "none" : "block";
-                itemContent.classList.toggle("expanded");
-                chevron.style.transform = isExpanded ? "rotate(0)" : "rotate(90deg)";
-                
-                const folderStates = getFolderStates();
-                await persistCurrentProjectToFirestore(folderStates);
-            });
-            
-            // Add context menu for folders
-            itemContent.addEventListener("contextmenu", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                showContextMenu(e, true);
-            });
-            
-            li.addEventListener("contextmenu", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                showContextMenu(e, true);
-            });
-            
-            createTree(value, subUl);
+            createTree(value, subUl, currentPath);
             parentUl.appendChild(li);
         }
         
         // Then process files
         for (const [key, value] of files) {
             const li = document.createElement("li");
-            const itemContent = document.createElement("div");
-            itemContent.className = "file-item";
-            itemContent.draggable = true;
+            const currentPath = parentPath ? `${parentPath}/${key}` : key;
+            const itemContent = createFileContent(key, value);
             
-            // Add drag event listeners for files
-            itemContent.addEventListener('dragstart', (e) => {
-                e.stopPropagation();
-                e.dataTransfer.setData('text/plain', JSON.stringify({
-                    path: getItemPath(itemContent),
-                    isFolder: false
-                }));
-                itemContent.classList.add('dragging');
-            });
-            
-            itemContent.addEventListener('dragend', () => {
-                itemContent.classList.remove('dragging');
-            });
-            
-            const fileIcon = document.createElement("span");
-            if (key.endsWith('.tex')) {
-                fileIcon.className = "codicon codicon-file-code";
-                if (key === mainTexFile && key in (getCurrentProjectFiles() || {})) {
-                    itemContent.classList.add('main-tex');
-                }
-            } else if (key.endsWith('.bib')) {
-                fileIcon.className = "codicon codicon-references";
-            } else {
-                fileIcon.className = "codicon codicon-file";
-            }
-            
-            const label = document.createElement("span");
-            label.textContent = key;
-            
-            itemContent.appendChild(fileIcon);
-            itemContent.appendChild(label);
-            itemContent.addEventListener("click", () => loadFile(key, value));
-            
-            // Add context menu for files
-            itemContent.addEventListener("contextmenu", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                showContextMenu(e, false);
-            });
-            
-            li.addEventListener("contextmenu", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                showContextMenu(e, false);
-            });
+            addDragHandlers(itemContent, currentPath, false);
+            addContextMenuHandlers(itemContent, false);
             
             li.appendChild(itemContent);
             parentUl.appendChild(li);
@@ -330,6 +196,7 @@ export function renderFileExplorer(container, structure, savedState = {}) {
     }
 
     createTree(structure, ul);
+    
     // Add Create Project item after the tree
     const createProjectItem = document.createElement("div");
     createProjectItem.className = "create-project-item";
@@ -618,4 +485,140 @@ function handleFileUpload(e) {
         };
         reader.readAsText(file);
     }
+}
+
+// UI Element Creators
+function createFolderContent(name, isExpanded = false) {
+    const content = document.createElement("div");
+    content.className = "file-item";
+    content.draggable = true;
+    
+    const chevron = document.createElement("span");
+    chevron.className = "codicon codicon-chevron-right";
+    if (isExpanded) {
+        chevron.style.transform = "rotate(90deg)";
+        content.classList.add("expanded");
+    }
+    
+    const label = document.createElement("span");
+    label.textContent = name;
+    
+    content.appendChild(chevron);
+    content.appendChild(label);
+    
+    return content;
+}
+
+function createFileContent(fileName, fileContent) {
+    const content = document.createElement("div");
+    content.className = "file-item";
+    content.draggable = true;
+    
+    const fileIcon = document.createElement("span");
+    fileIcon.className = getFileIconClass(fileName);
+    
+    const label = document.createElement("span");
+    label.textContent = fileName;
+    
+    content.appendChild(fileIcon);
+    content.appendChild(label);
+    
+    if (isMainTexFile(fileName)) {
+        content.classList.add('main-tex');
+    }
+    
+    return content;
+}
+
+function getFileIconClass(fileName) {
+    if (fileName.endsWith('.tex')) return "codicon codicon-file-code";
+    if (fileName.endsWith('.bib')) return "codicon codicon-references";
+    return "codicon codicon-file";
+}
+
+// Event Handlers
+function addDragHandlers(element, path, isFolder) {
+    element.addEventListener('dragstart', (e) => {
+        e.stopPropagation();
+        e.dataTransfer.setData('text/plain', JSON.stringify({ path, isFolder }));
+        element.classList.add('dragging');
+    });
+    
+    element.addEventListener('dragend', () => {
+        element.classList.remove('dragging');
+    });
+    
+    if (isFolder) {
+        addFolderDragHandlers(element, path);
+    }
+}
+
+function addFolderDragHandlers(element, path) {
+    element.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (path === 'Projects') {
+            e.dataTransfer.dropEffect = 'none';
+            return;
+        }
+        
+        element.classList.add('drag-over');
+    });
+    
+    element.addEventListener('dragleave', () => {
+        element.classList.remove('drag-over');
+    });
+    
+    element.addEventListener('drop', handleDrop);
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.target.classList.remove('drag-over');
+    
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    const targetPath = getItemPath(e.target);
+    
+    if ((data.isFolder && isDescendant(data.path, targetPath)) || 
+        targetPath === 'Projects') {
+        return;
+    }
+    
+    moveItem(data.path, targetPath, data.isFolder);
+}
+
+function addFolderClickHandler(content, subUl, chevron) {
+    content.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const isExpanded = subUl.style.display !== "none";
+        subUl.style.display = isExpanded ? "none" : "block";
+        content.classList.toggle("expanded");
+        chevron.style.transform = isExpanded ? "rotate(0)" : "rotate(90deg)";
+        
+        const folderStates = getFolderStates();
+        await persistCurrentProjectToFirestore(folderStates);
+    });
+}
+
+function addContextMenuHandlers(element, isFolder) {
+    element.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showContextMenu(e, isFolder);
+    });
+}
+
+// Helper Functions
+function isMainTexFile(fileName) {
+    return fileName === mainTexFile && 
+           fileName.endsWith('.tex') && 
+           fileName in (getCurrentProjectFiles() || {});
+}
+
+function createSubFolder(content) {
+    const ul = document.createElement("ul");
+    ul.style.display = "none";
+    return ul;
 }
