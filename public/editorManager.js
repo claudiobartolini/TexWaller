@@ -134,11 +134,11 @@ export function initializeEditor() {
 
 async function fetchEditorContent() {
     try {
-        const docRef = doc(collection(db, "documents"), "default");
-        const docSnap = await getDoc(docRef);
+        const editRef = doc(collection(db, "editors"), "default");
+        const editSnap = await getDoc(editRef);
 
-        if (docSnap.exists()) {
-            const data = docSnap.data();
+        if (editSnap.exists()) {
+            const data = editSnap.data();
             lastSavedContent = {
                 tex: data.tex || '',
                 bib: data.bib || ''
@@ -171,7 +171,7 @@ async function saveEditorContent() {
             return;
         }
 
-        await setDoc(doc(db, "documents", "default"), {
+        await setDoc(doc(db, "editors", "default"), {
             tex: newTexContent,
             bib: newBibContent,
             lastModified: new Date().toISOString()
@@ -182,9 +182,9 @@ async function saveEditorContent() {
             bib: newBibContent
         };
 
-        console.log("Document saved successfully!");
+        console.log("Editors content saved successfully!");
     } catch (error) {
-        console.error("Error saving document:", error);
+        console.error("Error saving editors content:", error);
         isOffline = true;
     }
 }
