@@ -394,15 +394,26 @@ export function renderFileExplorer(container, structure, savedState = {}) {
         if (!newProjectName || newProjectName.trim() === "") return;
     
         try {
+            // 1. Move current Projects content to Recent Projects
+            explorerTree["Recent Projects"] = {
+                ...explorerTree["Recent Projects"],
+                ...explorerTree.Projects
+            };
+
+            // 2. Clear Projects structure
+            explorerTree.Projects = {};
+
+            // 3. Create new project
             await createProjectInFirestore(newProjectName.trim());
             const states = getFolderStates();
             
-            // Add new project as a folder under Projects
-            explorerTree.Projects[newProjectName] = explorerTree.Projects[newProjectName] || {};            
+            // 4. Add new project as a folder under Projects
+            explorerTree.Projects[newProjectName] = {};            
 
-            // Make sure the Projects folder is expanded
+            // 5. Make sure the Projects folder is expanded
             states['Projects'] = true;
             
+            // 6. Update UI and persist changes
             renderFileExplorer(document.getElementById('file-tree'), explorerTree);
             applyFolderStates(states);
     
