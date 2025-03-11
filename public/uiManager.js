@@ -415,7 +415,14 @@ export function renderFileExplorer(container, structure, savedState = {}) {
     
     container.appendChild(ul);
     container.appendChild(createProjectItem);
-
+    
+    // Add divider
+    const divider = document.createElement("div");
+    divider.className = "section-divider";
+    container.appendChild(divider);
+    
+    // Add Recent Projects section
+    renderRecentProjectsTree(container);
 }
 
 // Add this function after your existing code
@@ -776,4 +783,77 @@ function getFileElement(fileName, folder = null) {
         const folderName = folderItem?.querySelector('.file-item span:last-child')?.textContent;
         return label === fileName && folderName === folder;
     });
+}
+
+function renderRecentProjectsTree(container) {
+    const recentHeader = document.createElement("div");
+    recentHeader.className = "section-header";
+    recentHeader.textContent = "RECENT PROJECTS";
+    
+    const recentTree = document.createElement("div");
+    recentTree.className = "file-tree readonly";
+    createReadonlyTree(explorerTree["Recent Projects"], recentTree);
+    
+    container.appendChild(recentHeader);
+    container.appendChild(recentTree);
+}
+
+function createReadonlyTree(obj, parentEl) {
+    const ul = document.createElement("ul");
+    
+    if (!obj) {
+        parentEl.appendChild(ul);
+        return;
+    }
+    
+    // Separate folders and files
+    const entries = Object.entries(obj);
+    const folders = entries.filter(([_, value]) => typeof value === 'object');
+    const files = entries.filter(([_, value]) => typeof value !== 'object');
+    
+    // Process folders first
+    folders.forEach(([key, value]) => {
+        const li = document.createElement("li");
+        const itemContent = document.createElement("div");
+        itemContent.className = "file-item";
+        
+        itemContent.innerHTML = `
+            <span class="codicon codicon-chevron-right"></span>
+            <span class="codicon codicon-folder"></span>
+            <span>${key}</span>
+        `;
+        
+        // Create subfolder
+        const subUl = document.createElement("ul");
+        subUl.style.display = "none";
+        createReadonlyTree(value, subUl);
+        
+        // Add expand/collapse functionality
+        itemContent.addEventListener("click", () => {
+            const chevron = itemContent.querySelector(".codicon-chevron-right");
+            subUl.style.display = subUl.style.display === "none" ? "block" : "none";
+            chevron.style.transform = subUl.style.display === "none" ? "" : "rotate(90deg)";
+        });
+        
+        li.appendChild(itemContent);
+        li.appendChild(subUl);
+        ul.appendChild(li);
+    });
+    
+    // Then process files
+    files.forEach(([key, value]) => {
+        const li = document.createElement("li");
+        const itemContent = document.createElement("div");
+        itemContent.className = "file-item";
+        
+        itemContent.innerHTML = `
+            <span class="codicon codicon-file"></span>
+            <span>${key}</span>
+        `;
+        
+        li.appendChild(itemContent);
+        ul.appendChild(li);
+    });
+    
+    parentEl.appendChild(ul);
 }

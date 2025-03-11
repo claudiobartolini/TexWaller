@@ -2,9 +2,24 @@ import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc } fro
 import { db } from './firebase-config.js';
 import { renderFileExplorer } from './uiManager.js';
 
+// Add this line near the top after imports
+const projectsRef = collection(db, "projects");
+
 // Module-level variables
 export let projectStructure = []; // Array of project names
-export let explorerTree = { Projects: {} };  // UI representation
+export let explorerTree = { 
+    Projects: {},
+    "Recent Projects": {
+        "Project 1": {
+            "file11.tex": "\\documentclass{article}\n\\begin{document}\nThis is file 11\n\\end{document}",
+            "file12.tex": "\\documentclass{article}\n\\begin{document}\nThis is file 12\n\\end{document}"
+        },
+        "Project 2": {
+            "file21.tex": "\\documentclass{article}\n\\begin{document}\nThis is file 21\n\\end{document}",
+            "file22.tex": "\\documentclass{article}\n\\begin{document}\nThis is file 22\n\\end{document}"
+        }
+    }
+};  // UI representation
 export let currentProject = null;
 export let mainTexFile = "main.tex";
 
@@ -39,7 +54,14 @@ export async function createProjectInFirestore(projectName) {
 
 export async function loadProjectsFromFirestore() {
     try {
-        const projectsRef = collection(db, "projects");
+        // Reset data structures but keep Recent Projects
+        const recentProjects = explorerTree["Recent Projects"];
+        projectStructure = [];
+        explorerTree = { 
+            Projects: {},
+            "Recent Projects": recentProjects
+        };
+
         let uiState = {}; // Default UI state
 
         // Load UI state and settings from global collection
@@ -63,10 +85,6 @@ export async function loadProjectsFromFirestore() {
             };
             await setDoc(doc(db, "global", "uiState"), uiState);
         }
-
-        // Reset data structures
-        projectStructure = [];
-        explorerTree = { Projects: {} };
 
         // Load all projects
         const querySnapshot = await getDocs(projectsRef);
