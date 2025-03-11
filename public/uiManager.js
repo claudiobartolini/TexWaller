@@ -413,9 +413,22 @@ export function renderFileExplorer(container, structure, savedState = {}) {
             // 5. Make sure the Projects folder is expanded
             states['Projects'] = true;
             
-            // 6. Update UI and persist changes
-            renderFileExplorer(document.getElementById('file-tree'), explorerTree);
-            applyFolderStates(states);
+            // 6. Update UI and persist both trees to Firebase
+            await Promise.all([
+                // Update UI
+                renderFileExplorer(document.getElementById('file-tree'), explorerTree),
+                applyFolderStates(states),
+                
+                // Persist Projects tree
+                setDoc(doc(db, "global", "settings"), {
+                    projectStructure,
+                    explorerTree: { 
+                        Projects: explorerTree.Projects,
+                        "Recent Projects": explorerTree["Recent Projects"]
+                    },
+                    lastModified: new Date().toISOString()
+                }, { merge: true })
+            ]);
     
             alert(`Project '${newProjectName}' created successfully!`);
         } catch (error) {
