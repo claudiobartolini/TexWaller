@@ -379,7 +379,7 @@ export function renderFileExplorer(container, structure, savedState = {}) {
         }
     }
 
-    createTree(structure, ul);
+    createTree(structure.Projects, ul);
     // Add Create Project item after the tree
     const createProjectItem = document.createElement("div");
     createProjectItem.className = "create-project-item";
