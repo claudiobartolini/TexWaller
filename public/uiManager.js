@@ -1,8 +1,7 @@
 import { 
-    explorerTree, 
-    persistCurrentProjectToFirestore, 
+    persistProjectAndWorkbenchToFirestore, 
     getCurrentProjectFiles,
-    projectStructure,
+    workbench,
     currentProject,
     mainTexFile,
     createProjectInFirestore
@@ -55,7 +54,7 @@ function applyFolderStates(states) {
     
     folders.forEach(folder => {
         const folderName = folder.querySelector('.file-item span:last-child').textContent;
-        const shouldBeExpanded = states[folderName];  // Changed from states.get()
+        const shouldBeExpanded = states[folderName];
         
         if (shouldBeExpanded) {
             const itemContent = folder.querySelector('.file-item');
@@ -200,13 +199,8 @@ function moveFile(sourcePath, targetPath, currentFiles) {
 }
 
 // Modify the renderFileExplorer function to handle UI state
-export function renderFileExplorer(container, structure, savedState = {}) {
+export function renderFileExplorer(container, savedState = {}) {
     container.innerHTML = "";
-
-    // Ensure "Projects" root exists before rendering
-    if (!structure.Projects) {
-        structure.Projects = {};
-    }
 
     const ul = document.createElement("ul");
     ul.className = "file-tree";
@@ -245,10 +239,6 @@ export function renderFileExplorer(container, structure, savedState = {}) {
                 e.stopPropagation();
                 
                 const targetPath = getItemPath(itemContent);
-                if (targetPath === 'Projects') {
-                    e.dataTransfer.dropEffect = 'none'; // Show 'not-allowed' cursor
-                    return; // Don't add drag-over class for Projects root
-                }
                 
                 itemContent.classList.add('drag-over');
             });
@@ -266,8 +256,7 @@ export function renderFileExplorer(container, structure, savedState = {}) {
                 const targetPath = getItemPath(itemContent);
                 
                 // Prevent dropping into descendant or directly under Projects
-                if ((data.isFolder && isDescendant(data.path, targetPath)) || 
-                    targetPath === 'Projects') {
+                if (data.isFolder && isDescendant(data.path, targetPath)) {
                     return;
                 }
                 
@@ -379,7 +368,7 @@ export function renderFileExplorer(container, structure, savedState = {}) {
         }
     }
 
-    createTree(structure.Projects, ul);
+    createTree(savedState.currentProject.currentProjectTree, ul);
     // Add Create Project item after the tree
     const createProjectItem = document.createElement("div");
     createProjectItem.className = "create-project-item";
@@ -394,9 +383,9 @@ export function renderFileExplorer(container, structure, savedState = {}) {
         if (!newProjectName || newProjectName.trim() === "") return;
     
         try {
-            // 1. Move current Projects content to Recent Projects
-            explorerTree["Recent Projects"] = {
-                ...explorerTree["Recent Projects"],
+            // 1. Move current Projects content to Workbench
+            explorerTree["Workbench"] = {
+                ...explorerTree["Workbench"],
                 ...explorerTree.Projects
             };
 
@@ -420,14 +409,12 @@ export function renderFileExplorer(container, structure, savedState = {}) {
                 applyFolderStates(states),
                 
                 // Persist Projects tree
-                setDoc(doc(db, "global", "settings"), {
-                    projectStructure,
-                    explorerTree: { 
-                        Projects: explorerTree.Projects,
-                        "Recent Projects": explorerTree["Recent Projects"]
-                    },
+                setDoc(doc(db, "global", "uiState"), {
+                    currentProject,
+                    expandedFolders,
+                    workbench,
                     lastModified: new Date().toISOString()
-                }, { merge: true })
+                }, { merge: false })
             ]);
     
             alert(`Project '${newProjectName}' created successfully!`);
@@ -445,8 +432,8 @@ export function renderFileExplorer(container, structure, savedState = {}) {
     divider.className = "section-divider";
     container.appendChild(divider);
     
-    // Add Recent Projects section
-    renderRecentProjectsTree(container);
+    // Add Workbench section
+    renderWorkbenchTree(container);
 }
 
 // Add this function after your existing code
@@ -738,13 +725,12 @@ async function updateUIAfterChange(states) {
             // Save folder states
             saveFolderStates(states),
             // Save explorer tree structure
-            setDoc(doc(db, "global", "settings"), {
-                projectStructure,
-                explorerTree: { Projects: Object.fromEntries(
-                    projectStructure.map(name => [name, explorerTree.Projects[name] || {}])
-                )},
+            setDoc(doc(db, "global", "uiState"), {
+                currentProject,
+                expandedFolders,
+                workbench,
                 lastModified: new Date().toISOString()
-            }, { merge: true })
+            }, { merge: false })
         ]);
     } catch (error) {
         console.error("Error persisting changes:", error);
@@ -809,19 +795,6 @@ function getFileElement(fileName, folder = null) {
     });
 }
 
-function renderRecentProjectsTree(container) {
-    const recentHeader = document.createElement("div");
-    recentHeader.className = "section-header";
-    recentHeader.textContent = "RECENT PROJECTS";
-    
-    const recentTree = document.createElement("div");
-    recentTree.className = "file-tree readonly";
-    createReadonlyTree(explorerTree["Recent Projects"], recentTree);
-    
-    container.appendChild(recentHeader);
-    container.appendChild(recentTree);
-}
-
 function createReadonlyTree(obj, parentEl) {
     const ul = document.createElement("ul");
     
@@ -880,4 +853,17 @@ function createReadonlyTree(obj, parentEl) {
     });
     
     parentEl.appendChild(ul);
+}
+
+function renderWorkbenchTree(container) {
+    const workbenchHeader = document.createElement("div");
+    workbenchHeader.className = "section-header";
+    workbenchHeader.textContent = "WORKBENCH";
+    
+    const workbenchTree = document.createElement("div");
+    workbenchTree.className = "file-tree readonly";
+    createReadonlyTree(workbench, workbenchTree);
+    
+    container.appendChild(workbenchHeader);
+    container.appendChild(workbenchTree);
 }

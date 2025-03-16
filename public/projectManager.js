@@ -3,35 +3,37 @@ import { db } from './firebase-config.js';
 import { renderFileExplorer } from './uiManager.js';
 
 // Add this line near the top after imports
-const projectsRef = collection(db, "projects");
+const workbenchRef = collection(db, "workbench");
 
 // Module-level variables
-export let projectStructure = []; // Array of project names
-export let explorerTree = { 
-    Projects: {},
-    "Recent Projects": {
+export let currentProjectTree = {};  // UI representation
+export let workbench = [
+    {
         "Project 1": {
             "file11.tex": "\\documentclass{article}\n\\begin{document}\nThis is file 11\n\\end{document}",
             "file12.tex": "\\documentclass{article}\n\\begin{document}\nThis is file 12\n\\end{document}"
-        },
+        }
+    },
+    {
         "Project 2": {
             "file21.tex": "\\documentclass{article}\n\\begin{document}\nThis is file 21\n\\end{document}",
             "file22.tex": "\\documentclass{article}\n\\begin{document}\nThis is file 22\n\\end{document}"
         }
     }
-};  // UI representation
+];
+
 export let currentProject = null;
 export let mainTexFile = "main.tex";
 
 export async function createProjectInFirestore(projectName) {
     // Validate project name
-    if (!projectName?.trim() || projectStructure.includes(projectName)) {
+    if (!projectName?.trim() || workbench.includes(projectName)) {
         throw new Error('Invalid or duplicate project name');
     }
 
-    const projectRef = doc(db, "projects", projectName);
-    
-    const projectData = {
+    workbench.unshift(currentProject);
+
+    currentProject = {
         name: projectName,
         createdAt: new Date().toISOString(),
         fileStructure: {
@@ -42,92 +44,52 @@ export async function createProjectInFirestore(projectName) {
             expandedFolders: ['Projects']
         }
     };
+    currentProjectTree = currentProject.fileStructure;
 
-    await setDoc(projectRef, projectData);
+    // save the new current project to Firestore, overwriting the existing "current" project
+    const projectRef = doc(db, "projects", projectName);
+    await setDoc(projectRef, currentProject);
+
+    const workbenchRef = doc(db, "workbench", projectName);
+    await setDoc(workbenchRef, workbench);
     
     // Update local structures
-    projectStructure.push(projectName);
+    workbench.push(currentProjectTree);
     explorerTree.Projects[projectName] = {};
 
-    return projectData;
+    return currentProject;
 }
 
-export async function loadProjectsFromFirestore() {
+export async function loadProjectAndWorkbenchFromFirestore() {
     try {
-        // Reset data structures but keep Recent Projects
-        const recentProjects = explorerTree["Recent Projects"];
-        projectStructure = [];
-        explorerTree = { 
-            Projects: {},
-            "Recent Projects": recentProjects
-        };
+        workbench = [];
+        currentProjectTree = {};
+        currentProject = null;
 
         let uiState = {}; // Default UI state
 
-        // Load UI state and settings from global collection
-        const [uiStateDoc, settingsDoc] = await Promise.all([
-            getDoc(doc(db, "global", "uiState")),
-            getDoc(doc(db, "global", "settings"))
-        ]);
+        // Load UI state from global collection
+        const uiStateDoc = await getDoc(doc(db, "global", "uiState"));
 
         // Get saved UI state or create default
         if (uiStateDoc.exists()) {
             uiState = uiStateDoc.data();
             currentProject = uiState.currentProject || null;
-            // Ensure expandedFolders exists
-            uiState.expandedFolders = uiState.expandedFolders || ['Projects'];
+            currentProjectTree = uiState.currentProject ? currentProject.currentProjectTree : {};
+            uiState.workbench = uiState.workbench || [];
+            uiState.expandedFolders = uiState.expandedFolders || [];
         } else {
             // Create default UI state if it doesn't exist
             uiState = {
                 currentProject: null,
-                expandedFolders: ['Projects'],
+                expandedFolders: [],
+                workbench: [],
                 lastModified: new Date().toISOString()
             };
             await setDoc(doc(db, "global", "uiState"), uiState);
         }
 
-        // Load all projects
-        const querySnapshot = await getDocs(projectsRef);
-        querySnapshot.forEach((doc) => {
-            const project = doc.data();
-
-            // Set default project if none is current
-            if (!currentProject) {
-                mainTexFile = project.mainTexFile || "main.tex";
-                currentProject = project.name;
-            }
-
-            // Store project name
-            projectStructure.push(project.name);
-            
-            // Store file content in explorerTree
-            if (project.fileStructure) {
-                explorerTree.Projects[project.name] = project.fileStructure;
-                console.log(`Loaded files for ${project.name}:`, project.fileStructure);
-            } else {
-                explorerTree.Projects[project.name] = {};
-            }
-        });
-
-        // If we have saved explorer tree state in settings, restore it
-        if (settingsDoc.exists()) {
-            const settings = settingsDoc.data();
-            if (settings.explorerTree?.Projects) {
-                // Merge saved structure with loaded files
-                Object.entries(settings.explorerTree.Projects).forEach(([projectName, structure]) => {
-                    if (explorerTree.Projects[projectName]) {
-                        explorerTree.Projects[projectName] = {
-                            ...structure,
-                            ...explorerTree.Projects[projectName]
-                        };
-                    }
-                });
-            }
-        }
-
-        console.log("Loaded projects:", projectStructure);
-        console.log("Explorer tree:", explorerTree);
-        console.log("UI state:", uiState);
+        console.log("Loaded currentProject:", currentProject, "workbench:", workbench, "uiState:", uiState);
 
         return uiState;
     } catch (error) {
@@ -137,14 +99,14 @@ export async function loadProjectsFromFirestore() {
 }
 
 // Save both file structure and UI state
-export async function persistCurrentProjectToFirestore(uiState = {}) {
+export async function persistProjectAndWorkbenchToFirestore(uiState = {}) {
     try {
         // Save project data with full file content
         if (currentProject) {
             const projectRef = doc(db, "projects", currentProject);
             const projectData = {
                 name: currentProject,
-                fileStructure: explorerTree.Projects[currentProject],
+                fileStructure: currentProject.currentProjectTree,
                 lastModified: new Date().toISOString(),
                 mainTexFile: mainTexFile
             };
@@ -161,13 +123,12 @@ export async function persistCurrentProjectToFirestore(uiState = {}) {
             lastModified: new Date().toISOString()
         }, { merge: true });
 
-        // Save global settings with project structure
-        const globalRef = doc(db, "global", "settings");
+        // Save global UI state with project structure
+        const globalRef = doc(db, "global", "uiState");
         await setDoc(globalRef, {
-            projectStructure,
-            explorerTree: { Projects: Object.fromEntries(
-                projectStructure.map(name => [name, explorerTree.Projects[name] || {}])
-            )},
+            currentProject,
+            expandedFolders: uiState.expandedFolders || [],
+            workbench,
             lastModified: new Date().toISOString()
         }, { merge: true });
 
@@ -179,12 +140,11 @@ export async function persistCurrentProjectToFirestore(uiState = {}) {
 
 // Add getter for file structure
 export function getCurrentProjectFiles() {
-    // Get files directly from explorerTree instead of fileStructure
-    return currentProject ? explorerTree.Projects[currentProject] : null;
+    return currentProject ? currentProject.currentProjectTree : null;
 }
 
 export async function switchProject(projectName) {
-    if (!projectStructure.includes(projectName)) {
+    if (!workbench.includes(projectName)) {
         console.error(`Project ${projectName} not found`);
         return;
     }
@@ -195,6 +155,7 @@ export async function switchProject(projectName) {
     
     if (projectDoc.exists()) {
         mainTexFile = projectDoc.data().mainTexFile || "main.tex";
+        currentProjectTree = projectDoc.data().fileStructure;
     }
 
     // Update UI state in Firestore

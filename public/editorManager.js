@@ -1,10 +1,10 @@
 import { 
-    loadProjectsFromFirestore, 
+    loadProjectAndWorkbenchFromFirestore, 
     mainTexFile,
     getCurrentProjectFiles,
-    persistCurrentProjectToFirestore,
+    persistProjectAndWorkbenchToFirestore,
     currentProject,
-    explorerTree 
+    workbench 
 } from './projectManager.js';
 import { renderFileExplorer } from './uiManager.js';
 import { collection, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
@@ -24,9 +24,6 @@ export function initializeEditor() {
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.21.2/min/vs' }});
     require(['vs/editor/editor.main'], async function() {
         try {
-            // Load projects first
-            await loadProjectsFromFirestore();
-
             // Initialize content variables
             const defaultTexContent = "\\documentclass{article}\n\\begin{document}\n\\end{document}";
             const defaultBibContent = "@article{example,\n  author = {Author},\n  title = {Title},\n  year = {2024}\n}";
@@ -117,10 +114,6 @@ export function initializeEditor() {
                 previewContainer.style.zIndex = '2';
                 editorContainer.style.zIndex = '1';
             });
-
-            // Initialize file explorer with explorerTree instead of fileStructure
-            const explorerContainer = document.getElementById("file-tree");
-            renderFileExplorer(explorerContainer, explorerTree);
 
             // Set initial focus
             texEditor.focus();
