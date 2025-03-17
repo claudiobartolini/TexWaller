@@ -686,16 +686,28 @@ function handleFileUpload(e, folderPath = null) {
             currentProject.currentProjectTree = {};
         }
 
-        // Store file in correct project structure
-        currentProject.currentProjectTree[file.name] = content;
+        // Store file in correct location based on folderPath
+        if (folderPath) {
+            // Ensure folder exists
+            if (!currentProject.currentProjectTree[folderPath]) {
+                currentProject.currentProjectTree[folderPath] = {};
+            }
+            // Add file to folder
+            currentProject.currentProjectTree[folderPath][file.name] = content;
+        } else {
+            // Add file to root level
+            currentProject.currentProjectTree[file.name] = content;
+        }
 
-        // Keep folder expanded
-        states[currentProject] = true;
+        // Keep folder expanded if we're uploading to a folder
+        if (folderPath) {
+            states[folderPath] = true;
+        }
         
         // Update UI and persist changes
         await updateUIAfterChange(states);
         
-        console.log(`File uploaded: ${file.name} with content length: ${content.length}`);
+        console.log(`File uploaded: ${file.name} in folder: ${folderPath || 'root'}`);
     };
     
     reader.readAsText(file);
