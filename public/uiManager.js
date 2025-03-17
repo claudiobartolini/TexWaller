@@ -202,8 +202,20 @@ function moveFile(sourcePath, targetPath, currentFiles) {
 export function renderFileExplorer(container, savedState = {}) {
     container.innerHTML = "";
 
+    // Update Projects header to Current Project
+    const projectsHeader = document.createElement("div");
+    projectsHeader.className = "section-header";
+    projectsHeader.textContent = "CURRENT PROJECT";  // Changed from "PROJECTS"
+    container.appendChild(projectsHeader);
+
     const ul = document.createElement("ul");
     ul.className = "file-tree";
+
+    // Get the tree structure safely, using currentProject from module scope
+    const projectTree = currentProject?.currentProjectTree || {};
+    createTree(projectTree, ul);
+    
+    container.appendChild(ul);
 
     function createTree(obj, parentUl) {
         // Separate folders and files
@@ -368,7 +380,6 @@ export function renderFileExplorer(container, savedState = {}) {
         }
     }
 
-    createTree(savedState.currentProject.currentProjectTree, ul);
     // Add Create Project item after the tree
     const createProjectItem = document.createElement("div");
     createProjectItem.className = "create-project-item";
@@ -425,7 +436,6 @@ export function renderFileExplorer(container, savedState = {}) {
         }
     });
     
-    container.appendChild(ul);
     container.appendChild(createProjectItem);
     
     // Add divider
@@ -715,17 +725,14 @@ async function handleFileClick(fileName, folder = null) {
 // Update updateUIAfterChange to include state saving
 async function updateUIAfterChange(states) {
     // First update UI
-    renderFileExplorer(document.getElementById('file-tree'), currentProject.currentProjectTree);
+    renderFileExplorer(document.getElementById('file-tree'));
     applyFolderStates(states);
 
     // Then persist everything to Firebase
     try {
         await Promise.all([
-            // Save current project's data
             persistCurrentProjectToFirestore(),
-            // Save folder states
             saveFolderStates(states),
-            // Save explorer tree structure
             setDoc(doc(db, "global", "uiState"), {
                 currentProject,
                 expandedFolders,
