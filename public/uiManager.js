@@ -790,7 +790,7 @@ async function updateUIAfterChange(states) {
     // Then persist everything to Firebase
     try {
         await Promise.all([
-            persistCurrentProjectToFirestore(),
+            persistProjectAndWorkbenchToFirestore(),
             saveFolderStates(states),
             setDoc(doc(db, "global", "uiState"), {
                 currentProject,
