@@ -21,6 +21,7 @@ export let workbench = [
         }
     }
 ];
+export let expandedFolders = [];
 
 export let currentProject = null;
 export let mainTexFile = "main.tex";
@@ -76,8 +77,8 @@ export async function loadProjectAndWorkbenchFromFirestore() {
             uiState = uiStateDoc.data();
             currentProject = uiState.currentProject || null;
             currentProjectTree = uiState.currentProject ? currentProject.currentProjectTree : {};
-            uiState.workbench = uiState.workbench || [];
-            uiState.expandedFolders = uiState.expandedFolders || [];
+            workbench = uiState.workbench || [];
+            expandedFolders = uiState.expandedFolders || [];
         } else {
             // Create default UI state if it doesn't exist
             uiState = {
