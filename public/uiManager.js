@@ -205,7 +205,15 @@ export function renderFileExplorer(container, savedState = {}) {
     // Update Projects header to Current Project
     const projectsHeader = document.createElement("div");
     projectsHeader.className = "section-header";
-    projectsHeader.textContent = "CURRENT PROJECT";  // Changed from "PROJECTS"
+    projectsHeader.textContent = "CURRENT PROJECT";
+    
+    // Add context menu for the header
+    projectsHeader.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showContextMenu(e, true);
+    });
+    
     container.appendChild(projectsHeader);
 
     const ul = document.createElement("ul");
@@ -461,22 +469,18 @@ function showContextMenu(e, isFolder) {
     }
 
     // Find the clicked element
-    const targetElement = e.target.closest('.file-item');
-    const folderElement = e.target.closest('.folder');
-    
+    const targetElement = e.target.closest('.file-item') || e.target.closest('.section-header');
     if (!targetElement) return;
 
-    // Skip context menu for Projects root
-    const folderName = targetElement.querySelector('span:last-child').textContent;
-    if (folderName === 'Projects') return;
+    // Check if this is the CURRENT PROJECT header
+    const isCurrentProjectHeader = targetElement.classList.contains('section-header') && 
+                                 targetElement.textContent === "CURRENT PROJECT";
 
+    // Create menu
     const menu = document.createElement('div');
     menu.className = 'context-menu';
 
-    // Update the folder handling section in showContextMenu
-    if (isFolder) {
-        const folderPath = targetElement.querySelector('span:last-child').textContent;
-        
+    if (isCurrentProjectHeader) {
         // Add create folder option
         const createFolderItem = document.createElement('div');
         createFolderItem.className = 'context-menu-item';
@@ -485,15 +489,14 @@ function showContextMenu(e, isFolder) {
         createFolderItem.onclick = () => {
             const newFolderName = prompt("Enter folder name:");
             if (newFolderName) {
-                handleCreateFolder(folderPath, newFolderName);
+                handleCreateFolder("Projects", newFolderName);
             }
             explorer.classList.remove('context-active');
             menu.remove();
         };
-        
         menu.appendChild(createFolderItem);
         
-        // Add existing upload item after create folder
+        // Add upload file option
         const uploadItem = document.createElement('div');
         uploadItem.className = 'context-menu-item';
         uploadItem.innerHTML = '<span class="codicon codicon-cloud-upload"></span>Upload File';
@@ -502,116 +505,160 @@ function showContextMenu(e, isFolder) {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '*';
-
-            // Change this part to use the proper handleFileUpload function
             input.onchange = (e) => {
-                handleFileUpload(e, folderPath);
+                handleFileUpload(e);
+                explorer.classList.remove('context-active');
+                menu.remove();
+            };
+            input.click();
+        };
+        menu.appendChild(uploadItem);
+    } else {
+        // ... rest of your existing showContextMenu code ...
+        // Skip context menu for Projects root
+        const folderName = targetElement.querySelector('span:last-child').textContent;
+        if (folderName === 'Projects') return;
+
+        // Update the folder handling section in showContextMenu
+        if (isFolder) {
+            const folderPath = targetElement.querySelector('span:last-child').textContent;
+            
+            // Add create folder option
+            const createFolderItem = document.createElement('div');
+            createFolderItem.className = 'context-menu-item';
+            createFolderItem.innerHTML = '<span class="codicon codicon-new-folder"></span>Create Folder';
+            
+            createFolderItem.onclick = () => {
+                const newFolderName = prompt("Enter folder name:");
+                if (newFolderName) {
+                    handleCreateFolder(folderPath, newFolderName);
+                }
                 explorer.classList.remove('context-active');
                 menu.remove();
             };
             
-            input.click();
-        };
-        
-        menu.appendChild(uploadItem);
-        
-        // Add delete option for all folders (including root)
-        const deleteItem = document.createElement('div');
-        deleteItem.className = 'context-menu-item';
-        deleteItem.innerHTML = '<span class="codicon codicon-trash"></span>Delete Folder';
-        
-        deleteItem.onclick = () => {
-            const folderContent = currentProject.currentProjectTree[folderPath];
-            if (Object.keys(folderContent).length === 0) {
-                const states = getFolderStates();
-                delete currentProject.currentProjectTree[folderPath];
-                // If root folder was deleted, create a new empty root
-                if (folderPath === "Projects") {  // Changed from Project
-                    currentProject.currentProjectTree["New Project"] = {};
-                }
-                renderFileExplorer(document.getElementById('file-tree'), currentProject.currentProjectTree);
-                applyFolderStates(states);
-            } else {
-                alert(`Folder "${folderPath}" is not empty`);
-            }
-            explorer.classList.remove('context-active');
-            menu.remove();
-        };
-        menu.appendChild(deleteItem);
+            menu.appendChild(createFolderItem);
+            
+            // Add existing upload item after create folder
+            const uploadItem = document.createElement('div');
+            uploadItem.className = 'context-menu-item';
+            uploadItem.innerHTML = '<span class="codicon codicon-cloud-upload"></span>Upload File';
+            
+            uploadItem.onclick = () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '*';
 
-        // Add rename option for all folders (including root)
-        const renameItem = document.createElement('div');
-        renameItem.className = 'context-menu-item';
-        renameItem.innerHTML = '<span class="codicon codicon-edit"></span>Rename';
-        
-        renameItem.onclick = () => {
-            const newName = prompt("Enter new folder name:", folderPath);
-            if (newName && newName !== folderPath) {
-                renameFileOrFolder(folderPath, newName, true);
-            }
-            explorer.classList.remove('context-active');
-            menu.remove();
-        };
-        menu.appendChild(renameItem);
-    } else {
-        // File context menu
-        const fileName = targetElement.querySelector('span:last-child').textContent;
-        const currentFiles = getCurrentProjectFiles();
-        const isRootTexFile = fileName.endsWith('.tex') && 
-                             fileName in (currentFiles || {});
-        
-        // Add "Set as Main Tex File" option only for root .tex files
-        if (isRootTexFile) {
-            const setMainTexItem = document.createElement('div');
-            setMainTexItem.className = 'context-menu-item main-tex-option';
-            const isCurrentMain = fileName === mainTexFile;
-            
-            setMainTexItem.innerHTML = `
-                <span class="codicon codicon-file-code"></span>
-                ${isCurrentMain ? 'Main Tex File' : 'Set as Main Tex File'}
-            `;
-            
-            if (!isCurrentMain) {
-                setMainTexItem.onclick = async () => {
-                    const states = getFolderStates();
-                    mainTexFile = fileName;
-                    await updateMainTexFileInFirestore(currentProject, fileName);  // Add this line
-                    renderFileExplorer(document.getElementById('file-tree'), currentProject.currentProjectTree);
-                    applyFolderStates(states);  // Restore states after re-render
+                // Change this part to use the proper handleFileUpload function
+                input.onchange = (e) => {
+                    handleFileUpload(e, folderPath);
                     explorer.classList.remove('context-active');
                     menu.remove();
                 };
-                menu.appendChild(setMainTexItem);
+                
+                input.click();
+            };
+            
+            menu.appendChild(uploadItem);
+            
+            // Add delete option for all folders (including root)
+            const deleteItem = document.createElement('div');
+            deleteItem.className = 'context-menu-item';
+            deleteItem.innerHTML = '<span class="codicon codicon-trash"></span>Delete Folder';
+            
+            deleteItem.onclick = () => {
+                const folderContent = currentProject.currentProjectTree[folderPath];
+                if (Object.keys(folderContent).length === 0) {
+                    const states = getFolderStates();
+                    delete currentProject.currentProjectTree[folderPath];
+                    // If root folder was deleted, create a new empty root
+                    if (folderPath === "Projects") {  // Changed from Project
+                        currentProject.currentProjectTree["New Project"] = {};
+                    }
+                    renderFileExplorer(document.getElementById('file-tree'), currentProject.currentProjectTree);
+                    applyFolderStates(states);
+                } else {
+                    alert(`Folder "${folderPath}" is not empty`);
+                }
+                explorer.classList.remove('context-active');
+                menu.remove();
+            };
+            menu.appendChild(deleteItem);
+
+            // Add rename option for all folders (including root)
+            const renameItem = document.createElement('div');
+            renameItem.className = 'context-menu-item';
+            renameItem.innerHTML = '<span class="codicon codicon-edit"></span>Rename';
+            
+            renameItem.onclick = () => {
+                const newName = prompt("Enter new folder name:", folderPath);
+                if (newName && newName !== folderPath) {
+                    renameFileOrFolder(folderPath, newName, true);
+                }
+                explorer.classList.remove('context-active');
+                menu.remove();
+            };
+            menu.appendChild(renameItem);
+        } else {
+            // File context menu
+            const fileName = targetElement.querySelector('span:last-child').textContent;
+            const currentFiles = getCurrentProjectFiles();
+            const isRootTexFile = fileName.endsWith('.tex') && 
+                                 fileName in (currentFiles || {});
+            
+            // Add "Set as Main Tex File" option only for root .tex files
+            if (isRootTexFile) {
+                const setMainTexItem = document.createElement('div');
+                setMainTexItem.className = 'context-menu-item main-tex-option';
+                const isCurrentMain = fileName === mainTexFile;
+                
+                setMainTexItem.innerHTML = `
+                    <span class="codicon codicon-file-code"></span>
+                    ${isCurrentMain ? 'Main Tex File' : 'Set as Main Tex File'}
+                `;
+                
+                if (!isCurrentMain) {
+                    setMainTexItem.onclick = async () => {
+                        const states = getFolderStates();
+                        mainTexFile = fileName;
+                        await updateMainTexFileInFirestore(currentProject, fileName);  // Add this line
+                        renderFileExplorer(document.getElementById('file-tree'), currentProject.currentProjectTree);
+                        applyFolderStates(states);  // Restore states after re-render
+                        explorer.classList.remove('context-active');
+                        menu.remove();
+                    };
+                    menu.appendChild(setMainTexItem);
+                }
             }
+            
+            // Add existing menu items (rename, delete, etc.)
+            const renameItem = document.createElement('div');
+            renameItem.className = 'context-menu-item';
+            renameItem.innerHTML = '<span class="codicon codicon-edit"></span>Rename';
+            
+            renameItem.onclick = () => {
+                const newName = prompt("Enter new file name:", fileName);
+                if (newName && newName !== fileName) {
+                    renameFileOrFolder(fileName, newName, false);
+                }
+                explorer.classList.remove('context-active');
+                menu.remove();
+            };
+            
+            menu.appendChild(renameItem);
+
+            const deleteItem = document.createElement('div');
+            deleteItem.className = 'context-menu-item';
+            deleteItem.innerHTML = '<span class="codicon codicon-trash"></span>Delete File';
+            
+            deleteItem.onclick = () => {
+                handleDeleteFile(fileName);
+                explorer.classList.remove('context-active');
+                menu.remove();
+            };
+
+            menu.appendChild(deleteItem);
         }
-        
-        // Add existing menu items (rename, delete, etc.)
-        const renameItem = document.createElement('div');
-        renameItem.className = 'context-menu-item';
-        renameItem.innerHTML = '<span class="codicon codicon-edit"></span>Rename';
-        
-        renameItem.onclick = () => {
-            const newName = prompt("Enter new file name:", fileName);
-            if (newName && newName !== fileName) {
-                renameFileOrFolder(fileName, newName, false);
-            }
-            explorer.classList.remove('context-active');
-            menu.remove();
-        };
-        
-        menu.appendChild(renameItem);
-
-        const deleteItem = document.createElement('div');
-        deleteItem.className = 'context-menu-item';
-        deleteItem.innerHTML = '<span class="codicon codicon-trash"></span>Delete File';
-        
-        deleteItem.onclick = () => {
-            handleDeleteFile(fileName);
-            explorer.classList.remove('context-active');
-            menu.remove();
-        };
-
-        menu.appendChild(deleteItem);
     }
 
     menu.style.left = `${e.pageX}px`;
