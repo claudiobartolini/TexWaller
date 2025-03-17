@@ -511,15 +511,15 @@ function showContextMenu(e, isFolder) {
         deleteItem.innerHTML = '<span class="codicon codicon-trash"></span>Delete Folder';
         
         deleteItem.onclick = () => {
-            const folderContent = explorerTree[folderPath];
+            const folderContent = currentProject.currentProjectTree[folderPath];
             if (Object.keys(folderContent).length === 0) {
                 const states = getFolderStates();
-                delete explorerTree[folderPath];
+                delete currentProject.currentProjectTree[folderPath];
                 // If root folder was deleted, create a new empty root
                 if (folderPath === "Projects") {  // Changed from Project
-                    explorerTree["New Project"] = {};
+                    currentProject.currentProjectTree["New Project"] = {};
                 }
-                renderFileExplorer(document.getElementById('file-tree'), explorerTree);
+                renderFileExplorer(document.getElementById('file-tree'), currentProject.currentProjectTree);
                 applyFolderStates(states);
             } else {
                 alert(`Folder "${folderPath}" is not empty`);
@@ -566,7 +566,7 @@ function showContextMenu(e, isFolder) {
                     const states = getFolderStates();
                     mainTexFile = fileName;
                     await updateMainTexFileInFirestore(currentProject, fileName);  // Add this line
-                    renderFileExplorer(document.getElementById('file-tree'), explorerTree);
+                    renderFileExplorer(document.getElementById('file-tree'), currentProject.currentProjectTree);
                     applyFolderStates(states);  // Restore states after re-render
                     explorer.classList.remove('context-active');
                     menu.remove();
@@ -625,12 +625,12 @@ function handleFileUpload(e, folderPath = null) {
         }
         
         // Initialize project if it doesn't exist
-        if (!explorerTree.Projects[currentProject]) {
-            explorerTree.Projects[currentProject] = {};
+        if (!currentProject.currentProjectTree) {
+            currentProject.currentProjectTree = {};
         }
 
         // Store file in correct project structure
-        explorerTree.Projects[currentProject][file.name] = content;
+        currentProject.currentProjectTree[file.name] = content;
 
         // Keep folder expanded
         states[currentProject] = true;
@@ -715,7 +715,7 @@ async function handleFileClick(fileName, folder = null) {
 // Update updateUIAfterChange to include state saving
 async function updateUIAfterChange(states) {
     // First update UI
-    renderFileExplorer(document.getElementById('file-tree'), explorerTree);
+    renderFileExplorer(document.getElementById('file-tree'), currentProject.currentProjectTree);
     applyFolderStates(states);
 
     // Then persist everything to Firebase
@@ -744,10 +744,10 @@ async function handleDeleteFile(fileName) {
     let fileDeleted = false;
 
     // Check for files in folders
-    for (const folder in explorerTree.Projects) {  // Changed from Project
-        if (typeof explorerTree.Projects[folder] === 'object' &&  // Changed from Project
-            explorerTree.Projects[folder].hasOwnProperty(fileName)) {  // Changed from Project
-            delete explorerTree.Projects[folder][fileName];  // Changed from Project
+    for (const folder in currentProject.currentProjectTree) {  // Changed from Project
+        if (typeof currentProject.currentProjectTree[folder] === 'object' &&  // Changed from Project
+            currentProject.currentProjectTree[folder].hasOwnProperty(fileName)) {  // Changed from Project
+            delete currentProject.currentProjectTree[folder][fileName];  // Changed from Project
             fileDeleted = true;
             break;
         }
@@ -763,9 +763,9 @@ async function handleCreateFolder(folderPath, newFolderName) {
     const states = getFolderStates();
     
     if (folderPath === "Projects") {
-        explorerTree.Projects[newFolderName] = {};
-    } else if (explorerTree.Projects[folderPath]) {
-        explorerTree.Projects[folderPath][newFolderName] = {};
+        currentProject.currentProjectTree[newFolderName] = {};
+    } else if (currentProject.currentProjectTree[folderPath]) {
+        currentProject.currentProjectTree[folderPath][newFolderName] = {};
     }
     
     states[folderPath] = true; // Ensure parent folder stays expanded
