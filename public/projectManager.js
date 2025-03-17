@@ -27,11 +27,11 @@ export let mainTexFile = "main.tex";
 
 export async function createProjectInFirestore(projectName) {
     // Validate project name
-    if (!projectName?.trim() || workbench.includes(projectName)) {
+    if (!projectName?.trim() || Object.keys(workbench).includes(projectName)) {
         throw new Error('Invalid or duplicate project name');
     }
 
-    workbench.unshift(currentProject);
+    workbench = { ...currentProjectTree, ...workbench };
 
     currentProject = {
         name: projectName,
@@ -53,16 +53,12 @@ export async function createProjectInFirestore(projectName) {
     const workbenchRef = doc(db, "workbench", projectName);
     await setDoc(workbenchRef, workbench);
     
-    // Update local structures
-    workbench.push(currentProjectTree);
-    explorerTree.Projects[projectName] = {};
-
     return currentProject;
 }
 
 export async function loadProjectAndWorkbenchFromFirestore() {
     try {
-        workbench = [];
+        workbench = {};
         currentProjectTree = {};
         currentProject = null;
 
@@ -76,14 +72,14 @@ export async function loadProjectAndWorkbenchFromFirestore() {
             uiState = uiStateDoc.data();
             currentProject = uiState.currentProject || null;
             currentProjectTree = uiState.currentProject ? currentProject.currentProjectTree : {};
-            workbench = uiState.workbench || [];
+            workbench = uiState.workbench || {};
             expandedFolders = uiState.expandedFolders || [];
         } else {
             // Create default UI state if it doesn't exist
             uiState = {
                 currentProject: null,
                 expandedFolders: [],
-                workbench: [],
+                workbench: {},
                 lastModified: new Date().toISOString()
             };
             await setDoc(doc(db, "global", "uiState"), uiState);
@@ -144,7 +140,7 @@ export function getCurrentProjectFiles() {
 }
 
 export async function switchProject(projectName) {
-    if (!workbench.includes(projectName)) {
+    if (!Object.keys(workbench).includes(projectName)) {
         console.error(`Project ${projectName} not found`);
         return;
     }
