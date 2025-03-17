@@ -75,9 +75,9 @@ async function renameFileOrFolder(oldPath, newName, isFolder) {
     
     if (isFolder) {
         // Rename folder in explorer tree
-        const folderContent = explorerTree.Projects[oldPath];
-        delete explorerTree.Projects[oldPath];
-        explorerTree.Projects[newName] = folderContent;
+        const folderContent = currentProject.currentProjectTree[oldPath];
+        delete currentProject.currentProjectTree[oldPath];
+        currentProject.currentProjectTree[newName] = folderContent;
     } else {
         // Rename file in current project
         if (currentFiles) {
@@ -116,30 +116,30 @@ async function moveItem(sourcePath, targetPath, isFolder) {
     
     if (isFolder) {
         // Move folder in explorer tree
-        const sourceContent = explorerTree.Projects[sourcePath];
+        const sourceContent = currentProject.currentProjectTree[sourcePath];
         if (sourceContent) {
-            delete explorerTree.Projects[sourcePath];
+            delete currentProject.currentProjectTree[sourcePath];
             
-            if (!explorerTree.Projects[targetPath]) {
-                explorerTree.Projects[targetPath] = {};
+            if (!currentProject.currentProjectTree[targetPath]) {
+                currentProject.currentProjectTree[targetPath] = {};
             }
-            explorerTree.Projects[targetPath][sourcePath] = sourceContent;
+            currentProject.currentProjectTree[targetPath][sourcePath] = sourceContent;
         }
     } else {
         // Move file within current project
         if (currentFiles) {
             // Get source file content from current location
             let sourceContent;
-            if (explorerTree.Projects[sourcePath]) {
-                sourceContent = explorerTree.Projects[sourcePath];
-                delete explorerTree.Projects[sourcePath];
+            if (currentProject.currentProjectTree[sourcePath]) {
+                sourceContent = currentProject.currentProjectTree[sourcePath];
+                delete currentProject.currentProjectTree[sourcePath];
             } else {
                 // Look for file in subfolders
-                for (const folder in explorerTree.Projects) {
-                    if (explorerTree.Projects[folder] && 
-                        explorerTree.Projects[folder][sourcePath]) {
-                        sourceContent = explorerTree.Projects[folder][sourcePath];
-                        delete explorerTree.Projects[folder][sourcePath];
+                for (const folder in currentProject.currentProjectTree) {
+                    if (currentProject.currentProjectTree[folder] && 
+                        currentProject.currentProjectTree[folder][sourcePath]) {
+                        sourceContent = currentProject.currentProjectTree[folder][sourcePath];
+                        delete currentProject.currentProjectTree[folder][sourcePath];
                         break;
                     }
                 }
@@ -148,12 +148,12 @@ async function moveItem(sourcePath, targetPath, isFolder) {
             if (sourceContent) {
                 // Move to new location
                 if (targetPath === "Projects") {
-                    explorerTree.Projects[sourcePath] = sourceContent;
+                    currentProject.currentProjectTree[sourcePath] = sourceContent;
                 } else {
-                    if (!explorerTree.Projects[targetPath]) {
-                        explorerTree.Projects[targetPath] = {};
+                    if (!currentProject.currentProjectTree[targetPath]) {
+                        currentProject.currentProjectTree[targetPath] = {};
                     }
-                    explorerTree.Projects[targetPath][sourcePath] = sourceContent;
+                    currentProject.currentProjectTree[targetPath][sourcePath] = sourceContent;
                 }
 
                 // Update current project's file structure
@@ -177,25 +177,25 @@ function moveFile(sourcePath, targetPath, currentFiles) {
     let fileContent = null;
     
     if (sourceFolder) {
-        if (explorerTree.Projects[sourceFolder]?.[fileName]) {
-            fileContent = explorerTree.Projects[sourceFolder][fileName];
-            delete explorerTree.Projects[sourceFolder][fileName];
+        if (currentProject.currentProjectTree[sourceFolder]?.[fileName]) {
+            fileContent = currentProject.currentProjectTree[sourceFolder][fileName];
+            delete currentProject.currentProjectTree[sourceFolder][fileName];
             
             // Clean up empty folders
-            if (Object.keys(explorerTree.Projects[sourceFolder]).length === 0) {
-                delete explorerTree.Projects[sourceFolder];
+            if (Object.keys(currentProject.currentProjectTree[sourceFolder]).length === 0) {
+                delete currentProject.currentProjectTree[sourceFolder];
             }
         }
     } else {
-        if (explorerTree.Projects[fileName]) {
-            fileContent = explorerTree.Projects[fileName];
-            delete explorerTree.Projects[fileName];
+        if (currentProject.currentProjectTree[fileName]) {
+            fileContent = currentProject.currentProjectTree[fileName];
+            delete currentProject.currentProjectTree[fileName];
         }
     }
 
     // Add to target
-    explorerTree.Projects[targetPath] = explorerTree.Projects[targetPath] || {};
-    explorerTree.Projects[targetPath][fileName] = fileContent;
+    currentProject.currentProjectTree[targetPath] = currentProject.currentProjectTree[targetPath] || {};
+    currentProject.currentProjectTree[targetPath][fileName] = fileContent;
 }
 
 // Modify the renderFileExplorer function to handle UI state
@@ -384,20 +384,20 @@ export function renderFileExplorer(container, savedState = {}) {
     
         try {
             // 1. Move current Projects content to Workbench
-            explorerTree["Workbench"] = {
-                ...explorerTree["Workbench"],
-                ...explorerTree.Projects
+            workbench = {
+                ...workbench,
+                ...currentProject.currentProjectTree
             };
 
             // 2. Clear Projects structure
-            explorerTree.Projects = {};
+            currentProject.currentProjectTree = {};
 
             // 3. Create new project
             await createProjectInFirestore(newProjectName.trim());
             const states = getFolderStates();
             
             // 4. Add new project as a folder under Projects
-            explorerTree.Projects[newProjectName] = {};            
+            currentProject.currentProjectTree[newProjectName] = {};            
 
             // 5. Make sure the Projects folder is expanded
             states['Projects'] = true;
@@ -405,7 +405,8 @@ export function renderFileExplorer(container, savedState = {}) {
             // 6. Update UI and persist both trees to Firebase
             await Promise.all([
                 // Update UI
-                renderFileExplorer(document.getElementById('file-tree'), explorerTree),
+                renderFileExplorer(document.getElementById('file-tree'), currentProject.currentProjectTree),
+                // render workbench
                 applyFolderStates(states),
                 
                 // Persist Projects tree
@@ -681,9 +682,9 @@ async function handleFileClick(fileName, folder = null) {
     
     // Get file content based on location
     if (folder) {
-        content = explorerTree.Projects[currentProject][folder]?.[fileName];
+        content = currentProject.currentProjectTree[folder]?.[fileName];
     } else {
-        content = explorerTree.Projects[currentProject][fileName];
+        content = currentProject.currentProjectTree[fileName];
     }
 
     // Load content into appropriate editor
