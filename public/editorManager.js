@@ -1,12 +1,7 @@
 import { 
-    loadProjectAndWorkbenchFromFirestore, 
     mainTexFile,
     getCurrentProjectFiles,
-    persistProjectAndWorkbenchToFirestore,
-    currentProject,
-    workbench 
 } from './projectManager.js';
-import { renderFileExplorer } from './uiManager.js';
 import { collection, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 

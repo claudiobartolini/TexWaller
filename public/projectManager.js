@@ -1,6 +1,5 @@
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+import { collection, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
-import { renderFileExplorer } from './uiManager.js';
 
 // Add this line near the top after imports
 const workbenchRef = collection(db, "workbench");
