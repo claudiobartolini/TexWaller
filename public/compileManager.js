@@ -27,7 +27,7 @@ let previewElement = null;
 let elapsedElement = null;
 let ubuntuPackageCheckboxes = null;
 
-const COMPILATION_TIMEOUT_MS = 15000;  // 15 seconds
+const COMPILATION_TIMEOUT_MS = 30000;  // 30 seconds
 let compilationTimeout = null;
 
 // Initialize all UI elements first
