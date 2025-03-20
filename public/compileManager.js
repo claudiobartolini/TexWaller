@@ -27,6 +27,9 @@ let previewElement = null;
 let elapsedElement = null;
 let ubuntuPackageCheckboxes = null;
 
+const COMPILATION_TIMEOUT_MS = 15000;  // 15 seconds
+let compilationTimeout = null;
+
 // Initialize all UI elements first
 document.addEventListener('DOMContentLoaded', async () => {
     // Wait for editors to be initialized
@@ -74,6 +77,7 @@ export async function onclick_() {
 
     if (compileButton.classList.contains('compiling')) {
         // Handle stop compilation
+        clearTimeout(compilationTimeout);  // Clear timeout when stopping manually
         terminate();
         compileButton.classList.remove('compiling');
         compileButton.innerText = "Compile";
@@ -90,6 +94,18 @@ export async function onclick_() {
     if (spinnerElement) {
         spinnerElement.style.display = 'block';
     }
+
+    // Set compilation timeout
+    compilationTimeout = setTimeout(() => {
+        console.error('Compilation timeout after 15 seconds');
+        terminate();
+        compileButton.classList.remove('compiling');
+        compileButton.innerText = "Compile";
+        if (spinnerElement) {
+            spinnerElement.style.display = 'none';
+        }
+        alert('Compilation timed out after 15 seconds');
+    }, COMPILATION_TIMEOUT_MS);
 
     const use_worker = workerCheckbox.checked;
     const use_preload = preloadCheckbox.checked;
@@ -142,6 +158,7 @@ export async function onclick_() {
     {
         if(pdf)
         {
+            clearTimeout(compilationTimeout);  // Clear timeout on successful compilation
             previewElement.src = URL.createObjectURL(new Blob([pdf], {type: 'application/pdf'}));
             elapsedElement.innerText = ((performance.now() - tic) / 1000).toFixed(2) + ' sec';
             if (spinnerElement) {
@@ -169,6 +186,10 @@ export async function onclick_() {
 }
 
 export function terminate() {
+    if (compilationTimeout) {
+        clearTimeout(compilationTimeout);
+        compilationTimeout = null;
+    }
     if (worker !== null) worker.terminate();
     worker = null;
 }
