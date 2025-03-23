@@ -562,11 +562,13 @@ button:hover {
 .modal-content {
     background-color: var(--vscode-editor-background);
     padding: 20px;
-    border-radius: 4px;
+    border-radius: 10px;  /* Match compile button's border-radius */
     width: 80%;
     max-width: 800px;
     max-height: 80vh;
     overflow-y: auto;
+    border: 2px solid #28a745;
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.7);
 }
 
 .modal-header {
@@ -574,6 +576,8 @@ button:hover {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #28a745;
 }
 
 .modal-close {
