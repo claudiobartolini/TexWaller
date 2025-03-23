@@ -97,7 +97,7 @@ export async function onclick_() {
 
     // Set compilation timeout
     compilationTimeout = setTimeout(() => {
-        console.error('Compilation timeout after 15 seconds');
+        console.error('Compilation timeout after 30 seconds');
         terminate();
         compileButton.classList.remove('compiling');
         compileButton.innerText = "Compile";

@@ -915,11 +915,43 @@ function createReadonlyTree(obj, parentEl) {
             <span>${key}</span>
         `;
         
+        // Add click handler for files
+        itemContent.addEventListener("click", () => {
+            showFilePreviewModal(key, value);
+        });
+        
         li.appendChild(itemContent);
         ul.appendChild(li);
     });
     
     parentEl.appendChild(ul);
+}
+
+// Add the modal function
+function showFilePreviewModal(fileName, content) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>${fileName}</h3>
+                <span class="modal-close codicon codicon-close"></span>
+            </div>
+            <div class="modal-body">
+                ${content || 'No content available'}
+            </div>
+        </div>
+    `;
+    
+    // Close modal when clicking outside or on close button
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal || e.target.classList.contains('modal-close')) {
+            modal.remove();
+        }
+    });
+    
+    document.body.appendChild(modal);
 }
 
 function renderWorkbenchTree(container) {
