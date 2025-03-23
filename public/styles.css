@@ -591,3 +591,51 @@ button:hover {
     font-size: var(--vscode-editor-font-size);
     color: var(--vscode-foreground);
 }
+
+/* Update readonly tree file items */
+.file-tree.readonly .file-item {
+    opacity: 0.8;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+}
+
+/* Folder focus/hover state */
+.file-tree.readonly .folder:hover > .file-item,
+.file-tree.readonly .folder:focus-within > .file-item {
+    background-color: var(--vscode-list-hoverBackground);
+    opacity: 1;
+}
+
+/* Files within focused folder */
+.file-tree.readonly .folder:hover > ul .file-item,
+.file-tree.readonly .folder:focus-within > ul .file-item {
+    background-color: var(--vscode-list-hoverBackground);
+    opacity: 0.6; /* Slightly dimmer than the folder */
+}
+
+/* Individual file focus/hover state */
+.file-tree.readonly li:not(.folder) > .file-item:hover,
+.file-tree.readonly li:not(.folder) > .file-item:focus {
+    background-color: var(--vscode-list-hoverBackground);
+    opacity: 1;
+}
+
+/* Active states */
+.file-tree.readonly .file-item.active {
+    background-color: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+    opacity: 1;
+}
+
+/* Add the active state for when item is clicked */
+.file-tree.readonly .file-item.active {
+    background-color: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+    opacity: 1;
+}
+
+/* Add focus outline */
+.file-tree.readonly .file-item:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
