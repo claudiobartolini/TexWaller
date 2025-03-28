@@ -380,7 +380,7 @@ export function terminate() {
 
 export function analyzeLatexLog(log) {
   return new Promise((resolve, reject) => {
-    require(['dist/latex-log-parser'], function (LatexParser) {
+    require(['lib/latex-log-parser'], function (LatexParser) {
       try {
         // Parser options
         const options = {
