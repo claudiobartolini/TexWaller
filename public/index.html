@@ -57,6 +57,23 @@
         <div id="editor-container">
             <div id="tex-editor"></div>
             <div id="bib-editor"></div>
+            <div id="supportpane">
+                <div id="tabs">
+                  <div class="tab active" data-tab="errors">Errors</div>
+                  <div class="tab" data-tab="warnings">Warnings</div>
+                  <div class="tab" data-tab="typesetting">Typesetting</div> <!-- Nuovo tab -->
+                  <div class="tab" data-tab="info">Full Log</div>
+                  <div class="supportpane-controls">
+                    <button id="minimize-supportpane" title="Minimize">_</button>
+                    <button id="close-supportpane" title="Close">X</button>
+                  </div>
+                </div>
+                <div id="errors" class="tab-content active"></div>
+                <div id="warnings" class="tab-content"></div>
+                <div id="info" class="tab-content"></div>
+                <div id="typesetting" class="tab-content"></div> <!-- Contenitore per il nuovo tab -->
+                <div id="resize-handle"></div> <!-- Handle per il ridimensionamento -->
+              </div>
         </div>
         <div id="preview-container">
             <iframe id="preview"></iframe>

@@ -129,6 +129,7 @@ button:hover {
 
 #bib-editor {
     height: 35%;
+    display: none;
 }
 
 /* Preview container and iframe */
@@ -519,4 +520,179 @@ button:hover {
 
 .create-project-item .codicon {
     color: #75beff;
+}
+
+/* Add these styles for the support pane */
+
+#supportpane {
+  position: relative; /* Necessario per posizionare l'handle */
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+  border-top: 1px solid #333;
+  height: 200px; /* Altezza iniziale */
+  overflow: hidden;
+  min-height: 100px; /* Altezza minima */
+  max-height: 70%; /* Altezza massima relativa alla finestra */
+  padding-left: 10px; /* Aggiunge padding sinistro */
+}
+
+#tabs {
+    display: flex;
+    align-items: center; /* Allinea verticalmente i contenuti */
+    justify-content: space-between; /* Spaziatura tra i tab e i pulsanti */
+    background-color: #2a2a2a;
+    border-bottom: 1px solid #333;
+    padding: 0 10px; /* Aggiunge padding orizzontale */
+}
+
+#tabs .tab {
+    padding: 10px 15px; /* Aggiunge padding interno ai tab */
+    cursor: pointer;
+    color: #d4d4d4;
+    flex: 1; /* I tab occupano lo spazio disponibile */
+    text-align: left;
+    transition: background-color 0.2s;
+    border-left: 1px solid #444; /* Bordo sinistro grigio scuro */
+    border-right: 1px solid #444; /* Bordo destro grigio scuro */
+    font-size: 14px; /* Stessa dimensione del font di Monaco Editor */
+}
+
+#tabs .tab:first-child {
+    border-left: none; /* Rimuove il bordo sinistro dal primo tab */
+}
+
+#tabs .tab:last-child {
+    border-right: none; /* Rimuove il bordo destro dall'ultimo tab */
+}
+
+.supportpane-controls {
+    display: flex;
+    gap: 5px; /* Spaziatura tra i pulsanti */
+}
+
+.supportpane-controls button {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.supportpane-controls button:hover {
+    background-color: #666;
+}
+
+.tab-content {
+    flex: 1;
+    overflow-y: auto; /* Abilita lo scrolling verticale */
+    display: none; /* Nasconde il contenuto per i tab inattivi */
+}
+
+.tab-content.active {
+    display: block; /* Mostra il contenuto per il tab attivo */
+}
+
+#tabs .tab {
+    cursor: pointer;
+    padding: 10px 15px;
+    background-color: #2a2a2a;
+    color: #d4d4d4;
+    border: 1px solid #444;
+    transition: background-color 0.2s;
+}
+
+#tabs .tab.active {
+    background-color: #007acc;
+    color: #ffffff;
+}
+
+.item {
+    padding: 5px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    transition: background-color 0.2s;
+    font-size: 12px; /* Stessa dimensione del font di Monaco Editor */
+    line-height: 1.5; /* Migliora la leggibilità */
+}
+
+.item:hover {
+    background-color: #2a2a2a;
+}
+
+#info {
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #d4d4d4;
+    overflow-y: auto; /* Abilita lo scrolling verticale */
+    max-height: 100%; /* Assicura che il contenuto non superi l'altezza del supportpane */
+    word-wrap: break-word; /* Gestisce il testo lungo */
+}
+
+#info p {
+    margin: 0;
+    padding: 2px 0;
+    color: #d4d4d4;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.highlight-line {
+  background-color: rgba(255, 255, 0, 0.3); /* Giallo trasparente */
+}
+
+.error-line {
+  background-color: rgba(255, 0, 0, 0.3); /* Rosso trasparente */
+}
+
+.warning-line {
+  background-color: rgba(255, 255, 0, 0.3); /* Giallo trasparente */
+}
+
+/* Stile per i pulsanti di controllo del supportpane */
+.supportpane-controls {
+    position: absolute; /* Posizionamento assoluto rispetto al supportpane */
+    top: 5px; /* Distanza dal bordo superiore */
+    right: 10px; /* Distanza dal bordo destro */
+    display: flex;
+    gap: 5px; /* Spaziatura tra i pulsanti */
+    z-index: 10; /* Assicurati che i pulsanti siano sopra gli altri elementi */
+  }
+  
+  .supportpane-controls button {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 12px;
+    transition: background-color 0.2s;
+  }
+  
+  .supportpane-controls button:hover {
+    background-color: #666;
+  }
+  
+  #supportpane {
+    position: relative; /* Necessario per il posizionamento assoluto dei pulsanti */
+    background-color: #1e1e1e;
+    border-top: 1px solid #333;
+    height: 200px; /* Altezza iniziale */
+    overflow: hidden;
+  }
+
+#resize-handle {
+  width: 100%;
+  height: 10px;
+  background-color: #444;
+  cursor: ns-resize; /* Cursore per il ridimensionamento verticale */
+  position: absolute;
+  top: -5px; /* Posiziona l'handle sopra il supportpane */
+  left: 0;
+  z-index: 10; /* Assicurati che l'handle sia sopra gli altri elementi */
 }
