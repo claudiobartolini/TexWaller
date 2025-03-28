@@ -85,6 +85,80 @@ export async function onclick_() {
     return;
   }
 
+  // Clear monaco editor decorations
+  // Rimuovi tutte le decorazioni dal texEditor
+  if (texEditor) {
+    // Se hai salvato gli ID delle decorazioni quando le hai create (approccio raccomandato)
+    let decorationIds = [/* array degli ID delle decorazioni */];
+    decorationIds = texEditor.deltaDecorations(decorationIds, []);
+
+    // Se non hai salvato gli ID e devi rimuovere tutte le decorazioni
+    // puoi creare un nuovo array vuoto per le decorazioni
+    if (!decorationIds || decorationIds.length === 0) {
+      // Ottieni tutti gli ID dalle vecchie decorazioni dal model
+      const model = texEditor.getModel();
+      if (model && model.getAllDecorations) {
+        const allDecorations = model.getAllDecorations();
+        decorationIds = allDecorations.map(d => d.id);
+      } else {
+        decorationIds = [];
+      }
+
+      // Rimuovi tutte le decorazioni
+      decorationIds = texEditor.deltaDecorations(decorationIds, []);
+    }
+  }
+  
+  if (bibEditor) {
+    // Se hai salvato gli ID delle decorazioni quando le hai create (approccio raccomandato)
+    let decorationIds = [/* array degli ID delle decorazioni */];
+    decorationIds = bibEditor.deltaDecorations(decorationIds, []);
+
+    // Se non hai salvato gli ID e devi rimuovere tutte le decorazioni
+    // puoi creare un nuovo array vuoto per le decorazioni
+    if (!decorationIds || decorationIds.length === 0) {
+      // Ottieni tutti gli ID dalle vecchie decorazioni dal model
+      const model = bibEditor.getModel();
+      if (model && model.getAllDecorations) {
+        const allDecorations = model.getAllDecorations();
+        decorationIds = allDecorations.map(d => d.id);
+      } else {
+        decorationIds = [];
+      }
+
+      // Rimuovi tutte le decorazioni
+      decorationIds = bibEditor.deltaDecorations(decorationIds, []);
+    }
+  }
+
+  /*
+  // Clear the support pane
+  const supportPane = document.getElementById("supportpane");
+  if (supportPane) {
+    supportPane.style.display = "none"; // Hide the support pane
+  }
+  */
+  // Clear the error and warning tabs
+  const errorsTab = document.getElementById("errors");
+  const warningsTab = document.getElementById("warnings");
+  if (errorsTab) {
+    errorsTab.innerHTML = ""; // Clear the content of the errors tab
+  }
+  if (warningsTab) {
+    warningsTab.innerHTML = ""; // Clear the content of the warnings tab
+  }
+  // Clear the info tab
+  const infoTab = document.getElementById("info");
+  if (infoTab) {
+    infoTab.innerHTML = ""; // Clear the content of the info tab
+  }
+  // Clear the typesetting tab
+  const typesettingTab = document.getElementById("typesetting");
+  if (typesettingTab) {
+    typesettingTab.innerHTML = ""; // Clear the content of the typesetting tab
+  }
+
+
   // Start compilation
   compileButton.classList.add("compiling");
   compileButton.innerText = "Stop compilation";
@@ -227,6 +301,44 @@ export async function onclick_() {
 
           // Popola il tab "Errors" e aggiungi decorazioni rosse
           const errorsTab = document.getElementById("errors");
+          errorsTab.innerHTML = ""; // Svuota il contenuto precedente
+
+          const errorDecorations = result.errors.map((error) => {
+            if (error.line != null) {
+              const errorItem = document.createElement("div");
+              errorItem.className = "item"; // Usa la classe CSS per gli item
+              errorItem.textContent = `Error in file ${error.file} at line ${error.line}: ${error.message}`;
+              errorsTab.appendChild(errorItem);
+
+              // Aggiungi un listener per spostare il cursore
+              errorItem.addEventListener("click", () => {
+                if (texEditor) {
+                  texEditor.setPosition({ lineNumber: error.line, column: 1 }); // Sposta il cursore
+                  texEditor.revealLineInCenter(error.line); // Centra la riga nell'editor
+                } else {
+                  console.error("Monaco Editor non inizializzato!");
+                }
+              });
+
+              // Aggiungi decorazione per l'errore
+              return {
+                range: new monaco.Range(error.line, 1, error.line, 1),
+                options: {
+                  isWholeLine: true,
+                  className: "error-line", // Classe CSS per lo stile
+                  overviewRuler: {
+                    color: "rgba(255, 0, 0, 0.8)", // Colore rosso per la preview
+                    position: monaco.editor.OverviewRulerLane.Full, // Posizione nella preview
+                  },
+                },
+              };
+            }
+          });
+
+
+
+          /*
+          ////////////////
           if (result.errors.length > 0) {
             errorsTab.innerHTML = ""; // Svuota il contenuto precedente solo se ci sono errori
             result.errors.forEach((error) => {
@@ -248,7 +360,10 @@ export async function onclick_() {
           } else {
             errorsTab.innerHTML = "<p>No errors found.</p>"; // Mostra un messaggio se non ci sono errori
           }
+          ////////////////
+          */
 
+          /*
           const errorDecorations = result.errors.map((error) => {
             const errorItem = document.createElement("div");
             errorItem.className = "item"; // Usa la classe CSS per gli item
@@ -278,6 +393,8 @@ export async function onclick_() {
               },
             };
           });
+          */
+
 
           // Popola il tab "Warnings" e aggiungi decorazioni gialle
           const warningsTab = document.getElementById("warnings");
