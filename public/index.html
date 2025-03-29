@@ -1,5 +1,7 @@
 <html>
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TexWaller</title>
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="busytex" type="text/javascript" id="busytex_worker_js" href="/dist/busytex_worker.js" /> 
@@ -13,6 +15,25 @@
 <link rel="stylesheet" type="text/css" href="styles.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.21.2/min/vs/editor/editor.main.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vscode/codicons/dist/codicon.css">
+
+<!-- PDF.js scripts with proper initialization - using a different version and CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script>
+  // Initialize PDF.js as soon as it's loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof pdfjsLib !== 'undefined') {
+      // Set worker source
+      pdfjsLib.GlobalWorkerOptions = pdfjsLib.GlobalWorkerOptions || {};
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+      console.log("PDF.js initialized in HTML from Mozilla CDN");
+      
+      // Make pdfjsLib globally available
+      window.pdfjsLib = pdfjsLib;
+    } else {
+      console.error("PDF.js failed to load in HTML from Mozilla CDN");
+    }
+  });
+</script>
 </head>
 
 <body>
@@ -76,7 +97,8 @@
               </div>
         </div>
         <div id="preview-container">
-            <iframe id="preview"></iframe>
+            <canvas id="pdf-canvas"></canvas>
+            <!--<iframe id="preview"></iframe>-->
             <div id="spinner">
                 <img src="spinner.gif" alt="Loading...">
             </div>

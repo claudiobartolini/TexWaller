@@ -1,4 +1,5 @@
 import { getEditors } from "./editorManager.js";
+import { ensurePDFJSReady, renderPDFPage, showPDFInIframe } from "./pdfjsManager.js";
 
 // Module-level variables and constants
 const paths_list = Array.from(document.head.getElementsByTagName("link"))
@@ -252,13 +253,31 @@ export async function onclick_() {
 
   worker.onmessage = async ({ data: { pdf, log, exit_code, logs, print } }) => {
     if (pdf) {
-      previewElement.src = URL.createObjectURL(
-        new Blob([pdf], { type: "application/pdf" })
-      );
+      const pdfBlob = new Blob([pdf], { type: "application/pdf" });
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      ensurePDFJSReady()
+        .then(() => {
+          console.log("PDF.js is ready, rendering PDF");
+
+          const loadingTask = pdfjsLib.getDocument(pdfUrl);
+          loadingTask.promise
+            .then((pdfDoc) => {
+              renderPDFPage(pdfDoc, 1); // Renderizza la prima pagina
+            })
+            .catch((error) => {
+              console.error("Error rendering PDF:", error);
+            });
+        })
+        .catch((error) => {
+          console.error("Failed to initialize PDF.js:", error);
+          showPDFInIframe(pdfUrl); // Usa l'iframe come fallback
+        });
+
       elapsedElement.innerText =
         ((performance.now() - tic) / 1000).toFixed(2) + " sec";
       if (spinnerElement) {
-        spinnerElement.style.display = "none"; // Hide spinner
+        spinnerElement.style.display = "none"; // Nascondi lo spinner
       }
       compileButton.classList.remove("compiling");
       compileButton.innerText = "Compile";
@@ -274,190 +293,12 @@ export async function onclick_() {
       // DO NOTHING
     }
 
-    if (exit_code != 0 & exit_code != undefined) {
-      //alert('Compilation failed: ' + log);
+    if (exit_code != 0 && exit_code !== undefined) {
       terminate();
-      
-      //bibEditor.setValue(logs.join("\n"));
-      //alert("Compilation failed");
-
-      // Analyze log to find errors and warnings
-
-      const pdflatex_log_index = logs.length == 2 ? 0 : logs.length - 1;
+      const pdflatex_log_index = logs.length === 2 ? 0 : logs.length - 1;
       const log = logs[pdflatex_log_index].log;
       bibEditor.setValue(log);
-
-      try {
-        const result = await analyzeLatexLog(log);
-
-        if (result) {
-          // Rendi visibile il supportpane
-          const supportPane = document.getElementById("supportpane");
-          supportPane.style.display = "block"; // Cambia il display a block
-
-          // Ottieni l'istanza del Monaco Editor
-          const editor = monaco.editor.getModels()[0]; // Assumendo che ci sia un solo modello caricato
-          let decorations = []; // Array per tenere traccia delle decorazioni attive
-
-          // Popola il tab "Errors" e aggiungi decorazioni rosse
-          const errorsTab = document.getElementById("errors");
-          errorsTab.innerHTML = ""; // Svuota il contenuto precedente
-
-          const errorDecorations = result.errors.map((error) => {
-            if (error.line != null) {
-              const errorItem = document.createElement("div");
-              errorItem.className = "item"; // Usa la classe CSS per gli item
-              errorItem.textContent = `Error in file ${error.file} at line ${error.line}: ${error.message}`;
-              errorsTab.appendChild(errorItem);
-
-              // Aggiungi un listener per spostare il cursore
-              errorItem.addEventListener("click", () => {
-                if (texEditor) {
-                  texEditor.setPosition({ lineNumber: error.line, column: 1 }); // Sposta il cursore
-                  texEditor.revealLineInCenter(error.line); // Centra la riga nell'editor
-                } else {
-                  console.error("Monaco Editor non inizializzato!");
-                }
-              });
-
-              // Aggiungi decorazione per l'errore
-              return {
-                range: new monaco.Range(error.line, 1, error.line, 1),
-                options: {
-                  isWholeLine: true,
-                  className: "error-line", // Classe CSS per lo stile
-                  overviewRuler: {
-                    color: "rgba(255, 0, 0, 0.8)", // Colore rosso per la preview
-                    position: monaco.editor.OverviewRulerLane.Full, // Posizione nella preview
-                  },
-                },
-              };
-            }
-          });
-
-
-
-          /*
-          ////////////////
-          if (result.errors.length > 0) {
-            errorsTab.innerHTML = ""; // Svuota il contenuto precedente solo se ci sono errori
-            result.errors.forEach((error) => {
-              const errorItem = document.createElement("div");
-              errorItem.className = "item";
-              errorItem.textContent = `Error in file ${error.file} at line ${error.line}: ${error.message}`;
-              errorsTab.appendChild(errorItem);
-          
-              // Aggiungi un listener per spostare il cursore
-              errorItem.addEventListener("click", () => {
-                if (texEditor) {
-                  texEditor.setPosition({ lineNumber: error.line, column: 1 });
-                  texEditor.revealLineInCenter(error.line);
-                } else {
-                  console.error("Monaco Editor non inizializzato!");
-                }
-              });
-            });
-          } else {
-            errorsTab.innerHTML = "<p>No errors found.</p>"; // Mostra un messaggio se non ci sono errori
-          }
-          ////////////////
-          */
-
-          /*
-          const errorDecorations = result.errors.map((error) => {
-            const errorItem = document.createElement("div");
-            errorItem.className = "item"; // Usa la classe CSS per gli item
-            errorItem.textContent = `Error in file ${error.file} at line ${error.line}: ${error.message}`;
-            errorsTab.appendChild(errorItem);
-
-            // Aggiungi un listener per spostare il cursore
-            errorItem.addEventListener("click", () => {
-              if (texEditor) {
-                texEditor.setPosition({ lineNumber: error.line, column: 1 }); // Sposta il cursore
-                texEditor.revealLineInCenter(error.line); // Centra la riga nell'editor
-              } else {
-                console.error("Monaco Editor non inizializzato!");
-              }
-            });
-
-            // Aggiungi decorazione per l'errore
-            return {
-              range: new monaco.Range(error.line, 1, error.line, 1),
-              options: {
-                isWholeLine: true,
-                className: "error-line", // Classe CSS per lo stile
-                overviewRuler: {
-                  color: "rgba(255, 0, 0, 0.8)", // Colore rosso per la preview
-                  position: monaco.editor.OverviewRulerLane.Full, // Posizione nella preview
-                },
-              },
-            };
-          });
-          */
-
-
-          // Popola il tab "Warnings" e aggiungi decorazioni gialle
-          const warningsTab = document.getElementById("warnings");
-          warningsTab.innerHTML = ""; // Svuota il contenuto precedente
-          const warningDecorations = result.warnings.map((warning) => {
-            const warningItem = document.createElement("div");
-            warningItem.className = "item"; // Usa la classe CSS per gli item
-            warningItem.textContent = `Warning in file ${warning.file} at line ${warning.line}: ${warning.message}`;
-            warningsTab.appendChild(warningItem);
-
-            // Aggiungi un listener per spostare il cursore
-            warningItem.addEventListener("click", () => {
-              if (texEditor) {
-                texEditor.setPosition({ lineNumber: warning.line, column: 1 }); // Sposta il cursore
-                texEditor.revealLineInCenter(warning.line); // Centra la riga nell'editor
-              } else {
-                console.error("Monaco Editor non inizializzato!");
-              }
-            });
-
-            // Aggiungi decorazione per il warning
-            return {
-              range: new monaco.Range(warning.line, 1, warning.line, 1),
-              options: {
-                isWholeLine: true,
-                className: "warning-line", // Classe CSS per lo stile
-                overviewRuler: {
-                  color: "rgba(255, 255, 0, 0.8)", // Colore giallo per la preview
-                  position: monaco.editor.OverviewRulerLane.Full, // Posizione nella preview
-                },
-              },
-            };
-          });
-
-          // Applica le decorazioni al Monaco Editor
-          decorations = texEditor.deltaDecorations(decorations, [...errorDecorations, ...warningDecorations]);
-
-          // Popola il tab "Info" con il contenuto del log formattato in HTML
-          const infoTab = document.getElementById("info");
-          infoTab.innerHTML = ""; // Svuota il contenuto precedente
-          const formattedLog = log
-            .split("\n")
-            .map((line) => `${line}<br>`) // Formatta ogni riga del log come un paragrafo
-            .join("");
-          infoTab.innerHTML = formattedLog;
-
-          // Popola il tab "Typesetting" con il contenuto di typesetting
-          const typesettingTab = document.getElementById("typesetting");
-          typesettingTab.innerHTML = ""; // Svuota il contenuto precedente
-          result.typesetting.forEach((issue) => {
-            const typesettingItem = document.createElement("div");
-            typesettingItem.className = "item"; // Usa la classe CSS per gli item
-            typesettingItem.textContent = `Typesetting issue: ${issue.message}`;
-            typesettingTab.appendChild(typesettingItem);
-          });
-
-          console.log("Support pane updated with LaTeX log results.");
-        }
-      } catch (error) {
-        console.error("Error analyzing LaTeX log:", error);
-      }
     }
-
   };
 
   if (reload)
@@ -495,6 +336,104 @@ export function terminate() {
   }
 }
 
+/*
+// Function to ensure PDF.js is ready to use
+function ensurePDFJSReady() {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const maxAttempts = 5;
+    const interval = 500; // Millisecondi tra i tentativi
+
+    const checkPDFJS = () => {
+      attempts++;
+      if (typeof pdfjsLib !== "undefined") {
+        resolve();
+      } else if (attempts >= maxAttempts) {
+        reject(new Error("PDF.js is not available after 5 attempts"));
+      } else {
+        setTimeout(checkPDFJS, interval);
+      }
+    };
+
+    checkPDFJS();
+  });
+}
+
+// Function to render a specific page of a PDF document
+function renderPDFPage(pdfDoc, pageNumber) {
+  try {
+    console.log(`Rendering PDF page ${pageNumber}`);
+    
+    // Get the specified page
+    pdfDoc.getPage(pageNumber).then(page => {
+      const canvas = document.getElementById("pdf-canvas");
+      if (!canvas) {
+        console.error("Canvas element not found");
+        return;
+      }
+      
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        console.error("Could not get canvas context");
+        return;
+      }
+      
+      // Set scale for better resolution
+      const scale = 1.5;
+      const viewport = page.getViewport({ scale });
+      
+      // Set canvas dimensions to match the viewport
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      
+      // Render the PDF page to the canvas
+      const renderContext = {
+        canvasContext: ctx,
+        viewport: viewport
+      };
+      
+      page.render(renderContext).promise.then(() => {
+        console.log("Page rendered successfully");
+      }).catch(error => {
+        console.error("Error rendering page:", error);
+      });
+    }).catch(error => {
+      console.error(`Error getting page ${pageNumber}:`, error);
+    });
+  } catch (error) {
+    console.error("Error in renderPDFPage:", error);
+  }
+}
+
+// Function to show PDF in iframe as fallback
+function showPDFInIframe(pdfUrl) {
+  try {
+    console.log("Falling back to iframe PDF viewer");
+    
+    const previewContainer = document.getElementById("preview-container");
+    if (!previewContainer) {
+      console.error("Preview container not found");
+      return;
+    }
+    
+    // Clear the container
+    previewContainer.innerHTML = "";
+    
+    // Create an iframe to display the PDF
+    const iframe = document.createElement("iframe");
+    iframe.src = pdfUrl;
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    
+    // Add the iframe to the container
+    previewContainer.appendChild(iframe);
+    console.log("PDF iframe added to container");
+  } catch (error) {
+    console.error("Error in showPDFInIframe:", error);
+  }
+}
+*/
 export function analyzeLatexLog(log) {
   return new Promise((resolve, reject) => {
     require(['lib/latex-log-parser'], function (LatexParser) {
