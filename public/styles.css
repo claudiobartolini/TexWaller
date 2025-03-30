@@ -1,525 +1,533 @@
 /* Base layout */
 body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background: #282c34;
-    color: white;
-    overflow: hidden;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #282c34;
+  color: white;
+  overflow: hidden;
 }
 
 /* Toolbar - keeping it hidden */
 .toolbar {
-    display: none;  /* Keep toolbar hidden */
-    justify-content: space-between;
-    padding: 10px;
-    background: #1e1e1e;
-    border-bottom: 2px solid #444;
-    height: 5%;
+  display: none; /* Keep toolbar hidden */
+  justify-content: space-between;
+  padding: 10px;
+  background: #1e1e1e;
+  border-bottom: 2px solid #444;
+  height: 5%;
 }
 
 /* General button styles */
 button {
-    padding: 10px 20px;
-    border: none;
-    background-color: #28a745; /* Changed to green */
-    color: white;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 16px;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    width: 100%;
+  padding: 10px 20px;
+  border: none;
+  background-color: #28a745; /* Changed to green */
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  width: 100%;
 }
 
 button:hover {
-    background-color: #218838; /* Darker green on hover */
-    transform: scale(1.05);
+  background-color: #218838; /* Darker green on hover */
+  transform: scale(1.05);
 }
 
 /* Main container */
 .container {
-    position: relative;
-    display: flex;
-    flex: 1;
-    height: calc(100vh - 65px); /* Reduced space */
-    padding: 10px 10px 0 10px; /* Reduced padding */
-    min-height: 0;
+  position: relative;
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 65px); /* Reduced space */
+  padding: 10px 10px 0 10px; /* Reduced padding */
+  min-height: 0;
 }
 
 /* File Explorer */
 #file-explorer {
-    width: 250px;
-    background: #1e1e1e;
-    color: white;
-    padding: 10px;
-    font-family: Arial, sans-serif;
-    border-right: 2px solid #444;
-    overflow-y: auto;
-    height: 100vh;
+  width: 250px;
+  background: #1e1e1e;
+  color: white;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  border-right: 2px solid #444;
+  overflow-y: auto;
+  height: 100vh;
 }
 
 #file-tree {
-    list-style: none;
-    padding: 4px 0;
-    margin: 0;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
 }
 
 #file-tree ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    margin-left: 16px; /* VS Code's exact indentation */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-left: 16px; /* VS Code's exact indentation */
 }
 
 #file-tree li {
-    list-style: none;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 3px;
+  list-style: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 3px;
 }
 
 #file-tree li:hover {
-    background: #333;
+  background: #333;
 }
 
 /* Folder Styling */
 .folder {
-    font-weight: bold;
-    margin-top: 5px;
-    display: flex;
-    flex-direction: column;  /* Stack folder and its contents vertically */
+  font-weight: bold;
+  margin-top: 5px;
+  display: flex;
+  flex-direction: column; /* Stack folder and its contents vertically */
 }
 
 .folder > .file-item {
-    order: -1;  /* Place folder item before its contents */
+  order: -1; /* Place folder item before its contents */
 }
 
 .folder > ul {
-    margin-left: 8px;  /* Indent folder contents */
+  margin-left: 8px; /* Indent folder contents */
 }
 
 /* Editor section */
 #editor-container {
-    position: absolute;
-    width: 75%;
-    left: 0;
-    height: calc(100% - 45px); /* Reduced space for button */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-height: 0;
-    transition: z-index 0.1s;
-    z-index: 2; /* Start with editor on top */
-    background-color: #2d2d2d; /* Slightly lighter than before */
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  width: 75%;
+  left: 0;
+  height: calc(100% - 45px); /* Reduced space for button */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  transition: z-index 0.1s;
+  z-index: 2; /* Start with editor on top */
+  background-color: #2d2d2d; /* Slightly lighter than before */
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-#tex-editor, #bib-editor {
-    background: #1e1e1e;
-    border-radius: 5px;
+#tex-editor,
+#bib-editor {
+  background: #1e1e1e;
+  border-radius: 5px;
 }
 
 #tex-editor {
-    height: 65%;
+  height: 65%;
 }
 
 #bib-editor {
-    height: 35%;
-    display: none;
+  height: 35%;
+  display: none;
 }
 
 /* Preview container and iframe */
 #preview-container {
-    position: absolute;
-    width: 75%;
-    right: 0;
-    height: calc(100% - 45px); /* Reduced space for button */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-height: 0;
-    transition: z-index 0.1s;
-    z-index: 1; /* Start with preview behind */
-    border-radius: 10px;
-    padding: 10px;
+  position: absolute;
+  width: 75%;
+  right: 0;
+  height: calc(100% - 45px); /* Reduced space for button */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  transition: z-index 0.1s;
+  z-index: 1; /* Start with preview behind */
+  border-radius: 10px;
+  padding: 10px;
 }
 
 #preview {
-    width: 100%;
-    height: 100%;
-    border: none;
-    border-radius: 10px;
-    background: white;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 10px;
+  background: white;
 }
 
 /* Spinner positioning and sizing */
 #spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: calc(100% - 10px);   /* Full width minus 5px margin on each side */
-    height: calc(100% - 10px);  /* Full height minus 5px margin on each side */
-    display: none;
-    z-index: 1000;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 10px); /* Full width minus 5px margin on each side */
+  height: calc(100% - 10px); /* Full height minus 5px margin on each side */
+  display: none;
+  z-index: 1000;
 }
 
 #spinner img {
-    width: calc(100% - 20px); /* Subtract padding from both sides */
-    height: calc(100% - 20px); /* Subtract padding from both top and bottom */
-    object-fit: contain; /* Maintain aspect ratio */
-    padding: 10px; /* Adds spacing */
-    display: block;
-    margin: auto; /* Centers within container */
+  width: calc(100% - 20px); /* Subtract padding from both sides */
+  height: calc(100% - 20px); /* Subtract padding from both top and bottom */
+  object-fit: contain; /* Maintain aspect ratio */
+  padding: 10px; /* Adds spacing */
+  display: block;
+  margin: auto; /* Centers within container */
 }
 
 /* Compile button */
 .compile {
-    position: fixed;
-    bottom: 10px; /* Reduced from 15px */
-    left: 50%;
-    transform: translateX(-50%) scale(1); /* Combine transform properties */
-    width: calc(100% - 20px); /* Reduced from 30px */
-    height: 35px; /* Reduced from 40px */
-    border: none;
-    border-radius: 10px;
-    background-color: #28a745;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
+  position: fixed;
+  bottom: 10px; /* Reduced from 15px */
+  left: 50%;
+  transform: translateX(-50%) scale(1); /* Combine transform properties */
+  width: calc(100% - 20px); /* Reduced from 30px */
+  height: 35px; /* Reduced from 40px */
+  border: none;
+  border-radius: 10px;
+  background-color: #28a745;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .compile.compiling {
-    background-color: #dc3545;  /* Bootstrap's danger red */
+  background-color: #dc3545; /* Bootstrap's danger red */
 }
 
 .compile:hover {
-    background-color: #218838;
-    transform: translateX(-50%) scale(1.05); /* Keep centered while scaling */
+  background-color: #218838;
+  transform: translateX(-50%) scale(1.05); /* Keep centered while scaling */
 }
 
 .compile.compiling:hover {
-    background-color: #c82333;  /* Darker red on hover */
+  background-color: #c82333; /* Darker red on hover */
 }
 
 /* File explorer overlay styles */
 .file-explorer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 250px;
-    height: 100%;
-    background-color: rgba(37, 37, 38, 0.95); /* Slightly transparent background */
-    border-right: 1px solid #3c3c3c;
-    z-index: 3; /* Higher than editor and preview */
-    overflow-y: auto;
-    transform: translateX(-250px); /* Hide by default */
-    transition: transform 0.3s ease;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Segoe WPC', 'Segoe UI Variable', sans-serif;
-    font-size: 11px;  /* Reduced from 13px */
-    letter-spacing: -0.15px;
-    color: #cccccc;  /* VS Code's default text color */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  background-color: rgba(
+    37,
+    37,
+    38,
+    0.95
+  ); /* Slightly transparent background */
+  border-right: 1px solid #3c3c3c;
+  z-index: 3; /* Higher than editor and preview */
+  overflow-y: auto;
+  transform: translateX(-250px); /* Hide by default */
+  transition: transform 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Segoe WPC",
+    "Segoe UI Variable", sans-serif;
+  font-size: 11px; /* Reduced from 13px */
+  letter-spacing: -0.15px;
+  color: #cccccc; /* VS Code's default text color */
 }
 
 .file-explorer.visible {
-    transform: translateX(0);
+  transform: translateX(0);
 }
 
 .file-explorer-header {
-    padding: 8px 12px;
-    font-size: 10px;  /* Reduced from 11px */
-    letter-spacing: 0.1px;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: #bbbbbb;  /* VS Code's slightly dimmer header color */
-    background: #2d2d2d;
-    border-bottom: 1px solid #3c3c3c;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 22px;
+  padding: 8px 12px;
+  font-size: 10px; /* Reduced from 11px */
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #bbbbbb; /* VS Code's slightly dimmer header color */
+  background: #2d2d2d;
+  border-bottom: 1px solid #3c3c3c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
 }
 
 /* Add a toggle button */
 .explorer-toggle {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 4;
-    background: none;
-    border: none;
-    color: #cccccc;
-    cursor: pointer;
-    padding: 5px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 4;
+  background: none;
+  border: none;
+  color: #cccccc;
+  cursor: pointer;
+  padding: 5px;
 }
 
 /* Hover trigger area */
 .hover-trigger {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 15px;
-    height: 100%;
-    z-index: 2;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 15px;
+  height: 100%;
+  z-index: 2;
 }
 
 /* Show explorer on hover */
 .hover-trigger:hover + .file-explorer,
 .file-explorer:hover,
 .file-explorer.context-active {
-    transform: translateX(0);
+  transform: translateX(0);
 }
 
 /* Update workspace to handle hover area */
 .workspace {
-    position: relative;
-    display: flex;
-    height: calc(100vh - 65px);
-    overflow: hidden;
+  position: relative;
+  display: flex;
+  height: calc(100vh - 65px);
+  overflow: hidden;
 }
 
 .file-tree {
-    list-style: none;
-    padding: 4px 0;
-    margin: 0;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
 }
 
 .file-tree ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    margin-left: 16px; /* VS Code's exact indentation */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-left: 16px; /* VS Code's exact indentation */
 }
 
 .file-tree li {
-    list-style: none;
+  list-style: none;
 }
 
 .file-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0 16px; /* VS Code's horizontal padding */
-    height: 22px;
-    font-size: 11px;
-    line-height: 22px;
-    color: #cccccc;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 16px; /* VS Code's horizontal padding */
+  height: 22px;
+  font-size: 11px;
+  line-height: 22px;
+  color: #cccccc;
+  cursor: pointer;
 }
 
 .file-item:hover {
-    background-color: #2a2d2e;
+  background-color: #2a2d2e;
 }
 
 .file-item.active {
-    background-color: #37373d;
+  background-color: #37373d;
 }
 
 .file-item.drag-over {
-    background-color: #2a2d2e;
-    position: relative;
-    border: none;  /* Remove any border */
+  background-color: #2a2d2e;
+  position: relative;
+  border: none; /* Remove any border */
 }
 
 .file-item.drag-over::before {
-    content: "\eab6"; /* codicon-arrow-small-right */
-    font-family: 'codicon';
-    position: absolute;
-    left: -16px;
-    color: #75beff;
-    font-size: 14px;
+  content: "\eab6"; /* codicon-arrow-small-right */
+  font-family: "codicon";
+  position: absolute;
+  left: -16px;
+  color: #75beff;
+  font-size: 14px;
 }
 
 /* Override any other potential pseudo-elements */
 .file-item.drag-over::after {
-    display: none;
+  display: none;
 }
 
 .file-item.drag-over {
-    background-color: #2a2d2e;
-    position: relative;
+  background-color: #2a2d2e;
+  position: relative;
 }
 
 .file-item.drag-over::before {
-    content: "\eab6"; /* codicon-arrow-small-right */
-    font-family: 'codicon';
-    position: absolute;
-    left: -16px;
-    color: #75beff;
-    font-size: 14px;
+  content: "\eab6"; /* codicon-arrow-small-right */
+  font-family: "codicon";
+  position: absolute;
+  left: -16px;
+  color: #75beff;
+  font-size: 14px;
 }
 
 /* Highlight for current file in explorer */
 .file-item.current-file {
-    background-color: var(--vscode-list-activeSelectionBackground);
-    color: var(--vscode-list-activeSelectionForeground);
-    border-radius: 3px;
+  background-color: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+  border-radius: 3px;
 }
 
 /* Optional: hover state for better UX */
 .file-item.current-file:hover {
-    background-color: var(--vscode-list-activeSelectionBackground);
-    opacity: 0.9;
+  background-color: var(--vscode-list-activeSelectionBackground);
+  opacity: 0.9;
 }
 
 /* Main tex file styling - base state */
 .file-item.main-tex,
 .file-item.main-tex .codicon,
 .file-item.main-tex span {
-    color: #ffcb6b !important;
+  color: #ffcb6b !important;
 }
 
 /* Combined state: both main tex and current file */
 .file-item.main-tex.current-file,
 .file-item.main-tex.current-file .codicon,
 .file-item.main-tex.current-file span {
-    color: #ffd700 !important; /* Brighter gold color */
-    font-weight: 600;
-    text-shadow: 0 0 2px rgba(255, 215, 0, 0.3); /* Subtle glow effect */
+  color: #ffd700 !important; /* Brighter gold color */
+  font-weight: 600;
+  text-shadow: 0 0 2px rgba(255, 215, 0, 0.3); /* Subtle glow effect */
 }
 
 /* Hover state for current main file */
 .file-item.main-tex.current-file:hover {
-    background-color: var(--vscode-list-activeSelectionBackground);
-    opacity: 0.95;
+  background-color: var(--vscode-list-activeSelectionBackground);
+  opacity: 0.95;
 }
 
-.folder-name, .file-name {
-    color: #cccccc;  /* VS Code's default text color */
+.folder-name,
+.file-name {
+  color: #cccccc; /* VS Code's default text color */
 }
 
 .codicon {
-    font-size: 14px;  /* Reduced from 16px */
-    margin-right: 4px;
-    position: relative;
-    top: 3px;
-    color: #c5c5c5;  /* VS Code's icon color */
+  font-size: 14px; /* Reduced from 16px */
+  margin-right: 4px;
+  position: relative;
+  top: 3px;
+  color: #c5c5c5; /* VS Code's icon color */
 }
 
 .codicon-chevron-right {
-    font-size: 12px;  /* Smaller chevron size */
-    color: #808080;  /* VS Code's chevron color */
+  font-size: 12px; /* Smaller chevron size */
+  color: #808080; /* VS Code's chevron color */
 }
 
 .folder .codicon-chevron-right {
-    font-size: 12px;
-    color: #808080;
-    min-width: 16px;
-    transform: rotate(0deg);
-    transition: transform 0.1s ease;
+  font-size: 12px;
+  color: #808080;
+  min-width: 16px;
+  transform: rotate(0deg);
+  transition: transform 0.1s ease;
 }
 
 .folder.expanded .codicon-chevron-right {
-    transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 
 .file-item .codicon {
-    font-size: 16px;
-    color: #c5c5c5;
-    margin-right: 6px;
-    min-width: 16px;
-    display: flex;
-    align-items: center;
+  font-size: 16px;
+  color: #c5c5c5;
+  margin-right: 6px;
+  min-width: 16px;
+  display: flex;
+  align-items: center;
 }
 
 /* Remove any leftover file-icon class styles */
 .file-icon {
-    display: none;
+  display: none;
 }
 
 /* Add these styles for the context menu */
 .context-menu {
-    position: fixed;
-    background: #252526;
-    border: 1px solid #454545;
-    padding: 4px 0;
-    min-width: 150px;
-    z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 11px;
+  position: fixed;
+  background: #252526;
+  border: 1px solid #454545;
+  padding: 4px 0;
+  min-width: 150px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 11px;
 }
 
 .context-menu-item {
-    padding: 0 12px;
-    height: 22px;
-    line-height: 22px;
-    color: #cccccc;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  padding: 0 12px;
+  height: 22px;
+  line-height: 22px;
+  color: #cccccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .context-menu-item:hover {
-    background-color: #2a2d2e;
+  background-color: #2a2d2e;
 }
 
 .context-menu-item .codicon-trash {
-    color: #f14c4c;
+  color: #f14c4c;
 }
 
 .context-menu-item:hover .codicon-trash {
-    color: #ff6b6b;
+  color: #ff6b6b;
 }
 
 .context-menu-item .codicon-new-folder {
-    color: #75beff;
+  color: #75beff;
 }
 
 .context-menu-item:hover .codicon-new-folder {
-    color: #9dceff;
+  color: #9dceff;
 }
 
 /* Remove the star-related styles */
 .context-menu-item .codicon-star-full,
 .context-menu-item .codicon-star-empty {
-    display: none;
+  display: none;
 }
 
 /* Add main tex file styling */
 .file-item.main-tex,
 .file-item.main-tex .codicon,
 .file-item.main-tex span {
-    color: #ffcb6b !important;
+  color: #ffcb6b !important;
 }
 
 /* Style for the "Set as Main Tex File" menu item */
 .context-menu-item.main-tex-option {
-    color: #ffcb6b;
+  color: #ffcb6b;
 }
 
 .context-menu-item.main-tex-option .codicon {
-    color: inherit;
+  color: inherit;
 }
 
 /* Add these styles after the existing file-explorer styles */
 
 .create-project-item {
-    padding: 0 16px;
-    height: 22px;
-    line-height: 22px;
-    color: #75beff;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-style: italic;
-    margin-top: 8px;
-    border-top: 1px solid #3c3c3c;
+  padding: 0 16px;
+  height: 22px;
+  line-height: 22px;
+  color: #75beff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-style: italic;
+  margin-top: 8px;
+  border-top: 1px solid #3c3c3c;
 }
 
 .create-project-item:hover {
-    background-color: #2a2d2e;
+  background-color: #2a2d2e;
 }
 
 .create-project-item .codicon {
-    color: #75beff;
+  color: #75beff;
 }
 
 /* Add these styles for the support pane */
@@ -538,107 +546,107 @@ button:hover {
 }
 
 #tabs {
-    display: flex;
-    align-items: center; /* Allinea verticalmente i contenuti */
-    justify-content: space-between; /* Spaziatura tra i tab e i pulsanti */
-    background-color: #2a2a2a;
-    border-bottom: 1px solid #333;
-    padding: 0 10px; /* Aggiunge padding orizzontale */
+  display: flex;
+  align-items: center; /* Allinea verticalmente i contenuti */
+  justify-content: space-between; /* Spaziatura tra i tab e i pulsanti */
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #333;
+  padding: 0 10px; /* Aggiunge padding orizzontale */
 }
 
 #tabs .tab {
-    padding: 10px 15px; /* Aggiunge padding interno ai tab */
-    cursor: pointer;
-    color: #d4d4d4;
-    flex: 1; /* I tab occupano lo spazio disponibile */
-    text-align: left;
-    transition: background-color 0.2s;
-    border-left: 1px solid #444; /* Bordo sinistro grigio scuro */
-    border-right: 1px solid #444; /* Bordo destro grigio scuro */
-    font-size: 14px; /* Stessa dimensione del font di Monaco Editor */
+  padding: 10px 15px; /* Aggiunge padding interno ai tab */
+  cursor: pointer;
+  color: #d4d4d4;
+  flex: 1; /* I tab occupano lo spazio disponibile */
+  text-align: left;
+  transition: background-color 0.2s;
+  border-left: 1px solid #444; /* Bordo sinistro grigio scuro */
+  border-right: 1px solid #444; /* Bordo destro grigio scuro */
+  font-size: 14px; /* Stessa dimensione del font di Monaco Editor */
 }
 
 #tabs .tab:first-child {
-    border-left: none; /* Rimuove il bordo sinistro dal primo tab */
+  border-left: none; /* Rimuove il bordo sinistro dal primo tab */
 }
 
 #tabs .tab:last-child {
-    border-right: none; /* Rimuove il bordo destro dall'ultimo tab */
+  border-right: none; /* Rimuove il bordo destro dall'ultimo tab */
 }
 
 .supportpane-controls {
-    display: flex;
-    gap: 5px; /* Spaziatura tra i pulsanti */
+  display: flex;
+  gap: 5px; /* Spaziatura tra i pulsanti */
 }
 
 .supportpane-controls button {
-    background-color: #444;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 3px;
-    font-size: 12px;
-    transition: background-color 0.2s;
+  background-color: #444;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 12px;
+  transition: background-color 0.2s;
 }
 
 .supportpane-controls button:hover {
-    background-color: #666;
+  background-color: #666;
 }
 
 .tab-content {
-    flex: 1;
-    overflow-y: auto; /* Abilita lo scrolling verticale */
-    display: none; /* Nasconde il contenuto per i tab inattivi */
+  flex: 1;
+  overflow-y: auto; /* Abilita lo scrolling verticale */
+  display: none; /* Nasconde il contenuto per i tab inattivi */
 }
 
 .tab-content.active {
-    display: block; /* Mostra il contenuto per il tab attivo */
+  display: block; /* Mostra il contenuto per il tab attivo */
 }
 
 #tabs .tab {
-    cursor: pointer;
-    padding: 10px 15px;
-    background-color: #2a2a2a;
-    color: #d4d4d4;
-    border: 1px solid #444;
-    transition: background-color 0.2s;
+  cursor: pointer;
+  padding: 10px 15px;
+  background-color: #2a2a2a;
+  color: #d4d4d4;
+  border: 1px solid #444;
+  transition: background-color 0.2s;
 }
 
 #tabs .tab.active {
-    background-color: #007acc;
-    color: #ffffff;
+  background-color: #007acc;
+  color: #ffffff;
 }
 
 .item {
-    padding: 5px;
-    cursor: pointer;
-    border-bottom: 1px solid #333;
-    transition: background-color 0.2s;
-    font-size: 12px; /* Stessa dimensione del font di Monaco Editor */
-    line-height: 1.5; /* Migliora la leggibilità */
+  padding: 5px;
+  cursor: pointer;
+  border-bottom: 1px solid #333;
+  transition: background-color 0.2s;
+  font-size: 12px; /* Stessa dimensione del font di Monaco Editor */
+  line-height: 1.5; /* Migliora la leggibilità */
 }
 
 .item:hover {
-    background-color: #2a2a2a;
+  background-color: #2a2a2a;
 }
 
 #info {
-    padding: 10px;
-    font-size: 12px;
-    line-height: 1.5;
-    color: #d4d4d4;
-    overflow-y: auto; /* Abilita lo scrolling verticale */
-    max-height: 100%; /* Assicura che il contenuto non superi l'altezza del supportpane */
-    word-wrap: break-word; /* Gestisce il testo lungo */
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d4d4d4;
+  overflow-y: auto; /* Abilita lo scrolling verticale */
+  max-height: 100%; /* Assicura che il contenuto non superi l'altezza del supportpane */
+  word-wrap: break-word; /* Gestisce il testo lungo */
 }
 
 #info p {
-    margin: 0;
-    padding: 2px 0;
-    color: #d4d4d4;
-    font-size: 12px;
-    line-height: 1.5;
+  margin: 0;
+  padding: 2px 0;
+  color: #d4d4d4;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .highlight-line {
@@ -655,36 +663,36 @@ button:hover {
 
 /* Stile per i pulsanti di controllo del supportpane */
 .supportpane-controls {
-    position: absolute; /* Posizionamento assoluto rispetto al supportpane */
-    top: 5px; /* Distanza dal bordo superiore */
-    right: 10px; /* Distanza dal bordo destro */
-    display: flex;
-    gap: 5px; /* Spaziatura tra i pulsanti */
-    z-index: 10; /* Assicurati che i pulsanti siano sopra gli altri elementi */
-  }
-  
-  .supportpane-controls button {
-    background-color: #444;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 3px;
-    font-size: 12px;
-    transition: background-color 0.2s;
-  }
-  
-  .supportpane-controls button:hover {
-    background-color: #666;
-  }
-  
-  #supportpane {
-    position: relative; /* Necessario per il posizionamento assoluto dei pulsanti */
-    background-color: #1e1e1e;
-    border-top: 1px solid #333;
-    height: 200px; /* Altezza iniziale */
-    overflow: hidden;
-  }
+  position: absolute; /* Posizionamento assoluto rispetto al supportpane */
+  top: 5px; /* Distanza dal bordo superiore */
+  right: 10px; /* Distanza dal bordo destro */
+  display: flex;
+  gap: 5px; /* Spaziatura tra i pulsanti */
+  z-index: 10; /* Assicurati che i pulsanti siano sopra gli altri elementi */
+}
+
+.supportpane-controls button {
+  background-color: #444;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.supportpane-controls button:hover {
+  background-color: #666;
+}
+
+#supportpane {
+  position: relative; /* Necessario per il posizionamento assoluto dei pulsanti */
+  background-color: #1e1e1e;
+  border-top: 1px solid #333;
+  height: 200px; /* Altezza iniziale */
+  overflow: hidden;
+}
 
 #resize-handle {
   width: 100%;
@@ -695,4 +703,72 @@ button:hover {
   top: -5px; /* Posiziona l'handle sopra il supportpane */
   left: 0;
   z-index: 10; /* Assicurati che l'handle sia sopra gli altri elementi */
+}
+
+/* PDF Viewer styles */
+
+/*
+#pdf-viewer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#pdf-controls {
+  margin-bottom: 10px;
+}
+
+#pdf-canvas {
+  border: 1px solid black;
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+}
+*/
+
+.pdftoolbar,
+.pdftoolbar i {
+  font-size: 14px;
+}
+.pdftoolbar span {
+  margin-right: 0.5em;
+  margin-left: 0.5em;
+  width: 4em !important;
+  font-size: 12px;
+}
+.pdftoolbar .btn-sm {
+  padding: 0.12rem 0.25rem;
+}
+.pdfjs-viewer {
+  height: 300px !important;
+}
+.pdftoolbar {
+  width: 100%;
+  height: auto;
+  background: #ddd;
+  z-index: 100;
+}
+.pdftoolbar .btn {
+  background: #ddd;
+  border: 1px solid #ccc;
+  color: #333;
+  padding: 0.5em;
+  margin: 0.5em;
+  cursor: pointer;
+}
+.pdftoolbar .btn:hover {
+  background: #ccc;
+}
+.pdftoolbar .btn:active {
+  background: #bbb;
+}
+.pdftoolbar .btn:focus {
+  outline: none;
+}
+.pdftoolbar .btn:focus-visible {
+  outline: 2px solid #007acc;
+}
+.pdftoolbar .btn:disabled {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
 }
