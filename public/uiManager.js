@@ -777,3 +777,54 @@ function getFileElement(fileName, folder = null) {
         return label === fileName && folderName === folder;
     });
 }
+
+// Gestione dei tab nel supportpane
+document.querySelectorAll('#tabs .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    // Rimuovi la classe "active" da tutti i tab
+    document.querySelectorAll('#tabs .tab').forEach(t => t.classList.remove('active'));
+
+    // Aggiungi la classe "active" al tab cliccato
+    tab.classList.add('active');
+
+    // Nascondi tutti i contenuti dei tab
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+    // Mostra il contenuto del tab selezionato
+    const tabName = tab.getAttribute('data-tab');
+    document.getElementById(tabName).classList.add('active');
+  });
+});
+
+const resizeHandle = document.getElementById("resize-handle");
+const supportPane = document.getElementById("supportpane");
+let isResizing = false;
+let startY = 0;
+let startHeight = 0;
+
+resizeHandle.addEventListener("mousedown", (e) => {
+  isResizing = true;
+  startY = e.clientY; // Registra la posizione iniziale del mouse
+  startHeight = supportPane.offsetHeight; // Registra l'altezza iniziale del supportpane
+  document.body.style.cursor = "ns-resize"; // Cambia il cursore
+  e.preventDefault(); // Previeni comportamenti indesiderati
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!isResizing) return;
+
+  const deltaY = e.clientY - startY; // Calcola la differenza di movimento del mouse
+  const newHeight = startHeight - deltaY; // Calcola la nuova altezza
+
+  // Imposta la nuova altezza rispettando i limiti
+  if (newHeight >= 100 && newHeight <= window.innerHeight * 0.7) {
+    supportPane.style.height = `${newHeight}px`;
+  }
+});
+
+document.addEventListener("mouseup", () => {
+  if (isResizing) {
+    isResizing = false;
+    document.body.style.cursor = "default"; // Ripristina il cursore
+  }
+});
