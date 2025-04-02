@@ -246,7 +246,7 @@ export async function onclick_() {
           );
         } else if (files && this.pipeline) {
           const pipeline = await this.pipeline;
-          const { pdf: pdf, exit_code: exit_code, logs: logs } = await self.pipeline.compile(
+          const { pdf: pdf, exit_code: exit_code, logs: logs } = await pipeline.compile(
             files,
             main_tex_path,
             bibtex,
@@ -301,7 +301,7 @@ export async function onclick_() {
       //bibEditor.setValue(log);
 
       try {
-        const result = await analyzeLatexLog(log);
+        const result = analyzeLatexLog(log);
         if (result) {
           // Rendi visibile il supportpane
           const supportPane = document.getElementById("supportpane");
