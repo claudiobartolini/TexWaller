@@ -1142,6 +1142,9 @@ button:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    color: white;  /* Text color for the Unicode symbols */
+    font-size: 18px;  /* Larger font for better visibility */
+    font-weight: bold;
 }
 
 /* Button hover state */
@@ -1192,4 +1195,177 @@ button:hover {
     margin: 10px auto;
     background-color: #252526;
     max-width: 95%;
+}
+
+/* Add this at the end of your CSS file to override any conflicts */
+
+/* Clean simple button styling */
+.btn-prev {
+    background-color: #333333 !important;
+    border: none !important;
+    color: white !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin: 0 4px !important;
+    cursor: pointer !important;
+    border-radius: 3px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+}
+
+/* Show hover effect */
+.btn-prev:hover {
+    background-color: #444444 !important;
+}
+
+/* Make the icon visible */
+.material-icons-outlined {
+    font-family: 'Material Icons Outlined', sans-serif !important;
+    font-size: 24px !important;
+    color: white !important;
+    display: inline-block !important;
+}
+
+/* If material icons aren't loading, add this to your HTML head */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Outlined');
+
+/* PDF viewer toolbar buttons - add this at the end of your CSS file */
+
+/* Base button style */
+.pdftoolbar .btn {
+    background-color: #333333 !important;
+    border: none !important;
+    color: white !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin: 0 4px !important;
+    cursor: pointer !important;
+    border-radius: 3px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.2s !important;
+}
+
+/* Hover effect */
+.pdftoolbar .btn:hover {
+    background-color: #444444 !important;
+}
+
+/* Make the Material Icons visible */
+.pdftoolbar .btn i.material-icons-outlined {
+    font-family: 'Material Icons Outlined', sans-serif !important;
+    font-size: 20px !important;
+    color: white !important;
+    display: inline-block !important;
+}
+
+/* Fix the Unicode symbol buttons */
+.pdftoolbar .btn:not(:has(i)) {
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
+
+/* Fix text spans */
+.pdftoolbar span:not(.btn) {
+    color: white !important;
+    font-size: 12px !important;
+    margin: 0 6px !important;
+    min-width: 40px !important;
+    text-align: center !important;
+}
+
+/* Clean up toolbar layout */
+.pdftoolbar {
+    background-color: #333333 !important;
+    padding: 4px 8px !important;
+    border-bottom: 1px solid #444 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Fix text alignment */
+.pdftoolbar .pageno,
+.pdftoolbar .zoomval {
+    display: inline-block !important;
+    line-height: 32px !important;
+    vertical-align: middle !important;
+}
+
+/* Fix PDF toolbar button styles to show ONLY icons */
+
+/* Hide all text content inside buttons */
+.pdftoolbar .btn * {
+    display: none !important;
+}
+
+/* But make the material icons visible */
+.pdftoolbar .btn i.material-icons-outlined {
+    display: inline-block !important;
+    font-size: 20px !important;
+    color: white !important;
+    font-family: 'Material Icons Outlined', sans-serif !important;
+}
+
+/* Enforce proper button styling */
+.pdftoolbar .btn {
+    background-color: #333333 !important;
+    border: none !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin: 0 4px !important;
+    cursor: pointer !important;
+    border-radius: 3px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+
+/* Button hover state */
+.pdftoolbar .btn:hover {
+    background-color: #444444 !important;
+}
+
+/* Make sure the span elements are visible */
+.pdftoolbar span:not(.btn):not(.material-icons-outlined) {
+    color: white !important;
+    font-size: 12px !important;
+    margin: 0 6px !important;
+    min-width: 40px !important;
+    text-align: center !important;
+    display: inline-block !important;
+}
+
+/* Add Material Icons font if not already loaded */
+@font-face {
+    font-family: 'Material Icons Outlined';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/materialiconsoutlined/v108/gok-H7zzDkdnRel8-DQ6KAXJ69wP1tGnf4ZGhUce.woff2) format('woff2');
+}
+
+/* Ensure the Material Icons are properly displayed */
+.material-icons-outlined {
+    font-family: 'Material Icons Outlined' !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    word-wrap: normal !important;
+    direction: ltr !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
 }

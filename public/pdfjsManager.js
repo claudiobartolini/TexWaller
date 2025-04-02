@@ -25,7 +25,7 @@ export function ensurePDFJSReady() {
   });
 }
 
-// Update the toolbar creation function
+// Update the toolbar creation function with simple Unicode symbols
 export function setupPDFToolbar() {
   // Create toolbar if it doesn't exist
   let toolbar = document.querySelector('.pdftoolbar');
@@ -36,36 +36,15 @@ export function setupPDFToolbar() {
     toolbar = document.createElement('div');
     toolbar.className = 'pdftoolbar';
     
+    // Use Unicode symbols directly as text content
     toolbar.innerHTML = `
-      <button class="btn" data-action="zoomIn" title="Zoom In">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-          <path d="M12.5 11h-.79l-.28-.27A6.5 6.5 0 0 0 13 6.5 6.5 6.5 0 0 0 6.5 0 6.5 6.5 0 0 0 0 6.5 6.5 6.5 0 0 0 6.5 13c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L17.49 16l-4.99-5zm-6 0C4.01 11 2 8.99 2 6.5S4.01 2 6.5 2 11 4.01 11 6.5 8.99 11 6.5 11z"/>
-          <path d="M7 4H6v2H4v1h2v2h1V7h2V6H7z"/>
-        </svg>
-      </button>
-      <button class="btn" data-action="zoomOut" title="Zoom Out">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-          <path d="M12.5 11h-.79l-.28-.27A6.5 6.5 0 0 0 13 6.5 6.5 6.5 0 0 0 6.5 0 6.5 6.5 0 0 0 0 6.5 6.5 6.5 0 0 0 6.5 13c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L17.49 16l-4.99-5zm-6 0C4.01 11 2 8.99 2 6.5S4.01 2 6.5 2 11 4.01 11 6.5 8.99 11 6.5 11z"/>
-          <path d="M4 6v1h5V6H4z"/>
-        </svg>
-      </button>
+      <button class="btn" data-action="zoomIn" title="Zoom In">+</button>
+      <button class="btn" data-action="zoomOut" title="Zoom Out">−</button>
       <span class="zoom-value">100%</span>
-      <button class="btn" data-action="prev" title="Previous Page">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-          <path d="M10 13L5 8l5-5 1 1-4 4 4 4-1 1z"/>
-        </svg>
-      </button>
+      <button class="btn" data-action="prev" title="Previous Page">◄</button>
       <span class="page-info">1/1</span>
-      <button class="btn" data-action="next" title="Next Page">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-          <path d="M6 13l-1-1 4-4-4-4 1-1 5 5-5 5z"/>
-        </svg>
-      </button>
-      <button class="btn" data-action="fit" title="Fit to Width">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-          <path d="M3 1H2v14h1V1zm11 0h-1v14h1V1zm-4.9 13h-2.2V2h2.2v12zM6.9 2v12H4.7V2h2.2z"/>
-        </svg>
-      </button>
+      <button class="btn" data-action="next" title="Next Page">►</button>
+      <button class="btn" data-action="fit" title="Fit to Width">↔</button>
     `;
     
     previewContainer.insertBefore(toolbar, previewContainer.firstChild);
