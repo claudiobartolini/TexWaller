@@ -1107,3 +1107,89 @@ button:hover {
     min-width: 36px;
     text-align: center;
 }
+
+/* ---- Clean up duplicate toolbar styles ---- */
+/* Remove or comment out ALL existing pdftoolbar styles first */
+
+/* Start with clean toolbar styles */
+.pdftoolbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 32px;
+    background-color: #333333;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid #444;
+    z-index: 101;
+    padding: 0;
+}
+
+/* Clean button styles */
+.pdftoolbar .btn {
+    width: 28px;
+    height: 28px;
+    background-color: transparent;
+    border: none;
+    margin: 0 4px;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 3px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Button hover state */
+.pdftoolbar .btn:hover {
+    background-color: #444444;
+}
+
+/* Button active state */
+.pdftoolbar .btn:active {
+    background-color: #505050;
+}
+
+/* Use direct SVG elements instead of pseudo-elements */
+.pdftoolbar .btn svg {
+    width: 16px;
+    height: 16px;
+    fill: white;
+    display: block;
+}
+
+/* Style text spans */
+.pdftoolbar .zoom-value,
+.pdftoolbar .page-info {
+    color: white;
+    font-size: 12px;
+    margin: 0 6px;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Position the viewer below the toolbar */
+.pdfjs-viewer {
+    position: absolute;
+    top: 32px;
+    right: 0;
+    width: 100%;
+    height: calc(100% - 32px);
+    background-color: #252526;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* Canvas styling */
+#pdf-canvas {
+    border: none;
+    margin: 10px auto;
+    background-color: #252526;
+    max-width: 95%;
+}
