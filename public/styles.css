@@ -1466,3 +1466,20 @@ button:hover {
     text-align: center !important;
     font-family: 'Segoe UI', sans-serif !important;
 }
+
+/* Add this to the end of your CSS file to override the horizontal layout */
+.pdfjs-viewer {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* Target the PDF pages - make them stack vertically with spacing between */
+.pdfjs-viewer .pdfpage {
+  margin-bottom: 20px !important;
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}

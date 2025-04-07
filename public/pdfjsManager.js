@@ -223,7 +223,7 @@ export function renderPDFPage(pdfDoc, pageNumber, scale = 1.5) {
   }
 }
 
-// Show PDF in iframe as fallback
+// Update your showPDFInIframe function in pdfjsManager.js
 export function showPDFInIframe(pdfUrl) {
   try {
     console.log("Falling back to iframe PDF viewer");
@@ -237,16 +237,20 @@ export function showPDFInIframe(pdfUrl) {
     // Clear container
     previewContainer.innerHTML = "";
     
+    // Add PDF.js viewer URL with parameters for vertical scrolling
+    // This works if you're using the standard PDF.js viewer
+    const viewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(pdfUrl)}&scrollmode=1`;
+    
     // Create iframe for PDF viewing
     const iframe = document.createElement("iframe");
-    iframe.src = pdfUrl;
+    iframe.src = viewerUrl; // Use the modified URL with scroll parameters
     iframe.style.width = "100%";
     iframe.style.height = "100%";
     iframe.style.border = "none";
     
     // Add iframe to container
     previewContainer.appendChild(iframe);
-    console.log("PDF iframe added to container");
+    console.log("PDF iframe added to container with vertical scrolling");
   } catch (error) {
     console.error("Error in showPDFInIframe:", error);
   }
