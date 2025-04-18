@@ -136,25 +136,16 @@ button:hover {
 /* Preview container and iframe */
 #preview-container {
   position: absolute;
-  width: 75%;
+  top: 0;
   right: 0;
-  height: calc(100% - 45px); /* Reduced space for button */
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 0;
-  transition: z-index 0.1s;
-  z-index: 1; /* Start with preview behind */
-  border-radius: 10px;
-  padding: 10px;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #252526;
 }
 
 #preview {
-  width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 10px;
-  background: white;
+  display: none; /* Hide instead of removing to avoid breaking any references */
 }
 
 /* Spinner positioning and sizing */
@@ -705,25 +696,23 @@ button:hover {
   z-index: 10; /* Assicurati che l'handle sia sopra gli altri elementi */
 }
 
-/* PDF Viewer styles */
-
-/*
 #pdf-viewer {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 0; /* Remove margin */
 }
 
 #pdf-controls {
-  margin-bottom: 10px;
+  margin: 0;
+  padding: 0;
 }
 
 #pdf-canvas {
-  border: 1px solid black;
-  width: 100%;
-  max-width: 800px;
-  height: auto;
+  border: none;
+  margin: 0 auto;
+  background-color: #252526;
+  max-height: 100%;
+  max-width: 100%;
 }
-*/
 
 .pdftoolbar,
 .pdftoolbar i {
@@ -773,122 +762,724 @@ button:hover {
   cursor: not-allowed;
 }
 
-
-.section-divider {
-    height: 1px;
-    background-color: var(--vscode-tree-indentGuidesStroke);
-    margin: 16px 0;
-    opacity: 0.5;
-}
-
-.section-header {
-    padding: 8px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--vscode-foreground);
-    opacity: 0.8;
-}
-
-.file-tree.readonly .file-item {
-    opacity: 0.8;
-    cursor: default;
-}
-
-.file-tree.readonly .file-item:hover {
-    background-color: transparent;
-}
-
-.modal-overlay {
-    position: fixed;
+/* PDF viewer and toolbar styling */
+.pdftoolbar {
+    position: absolute;
     top: 0;
-    left: 0;
     right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    width: 100%;  /* Full width of container */
+    height: 32px;
+    background-color: #333333;
+    display: flex;
+    align-items: center;
+    justify-content: center;  /* Center toolbar items */
+    padding: 0 8px;
+    border-bottom: 1px solid #444;
+    z-index: 101;
+}
+
+.pdftoolbar .btn {
+    background: transparent;
+    border: none;
+    color: #cccccc;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0 2px;
+    cursor: pointer;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.pdftoolbar .btn:hover {
+  background-color: #444444;
+}
+
+/* Hide text labels */
+.pdftoolbar .btn span {
+    display: none;
+}
+
+/* Use codicon icons */
+.pdftoolbar .btn::before {
+    font-family: 'codicon';
+    font-size: 16px;
+}
+
+/* Define specific icons for each button */
+.pdftoolbar .btn[data-action="zoomIn"]::before {
+    content: "\ea9d";  /* codicon-zoom-in */
+}
+
+.pdftoolbar .btn[data-action="zoomOut"]::before {
+    content: "\ea9c";  /* codicon-zoom-out */
+}
+
+.pdftoolbar .btn[data-action="prev"]::before {
+    content: "\eb1f";  /* codicon-chevron-left */
+}
+
+.pdftoolbar .btn[data-action="next"]::before {
+    content: "\eb1c";  /* codicon-chevron-right */
+}
+
+.pdftoolbar .btn[data-action="fit"]::before {
+    content: "\eb55";  /* codicon-layout-sidebar-right */
+}
+
+/* Center PDF content */
+.pdfjs-viewer {
+    position: absolute;
+    top: 32px;  /* Below toolbar */
+    right: 0;
+    width: 100%;  /* Take full width of container */
+    height: calc(100% - 32px) !important;
+    background-color: #252526;
+    z-index: 100;
     display: flex;
     justify-content: center;
+    align-items: center;  /* Center vertically too */
+    overflow: auto;
+}
+
+/* Clean up PDF canvas */
+#pdf-canvas {
+    border: none;
+    margin: 0 auto;  /* Center horizontally */
+    background-color: #252526;
+    max-height: 100%;  /* Ensure it doesn't overflow */
+    max-width: 100%;   /* Ensure it doesn't overflow */
+}
+
+#preview-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#pdf-canvas {
+    border: none;
+    width: 100%;
+    height: 100%;
+    background-color: #252526;
+}
+
+#pdf-controls {
+    margin: 0;
+    padding: 0;
+}
+
+/* Ensure codicon font is loaded */
+@font-face {
+    font-family: 'codicon';
+    src: url('https://cdn.jsdelivr.net/npm/vscode-codicons@0.0.31/dist/codicon.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+}
+
+/* Fix cross-browser font display */
+.codicon {
+    font: normal normal normal 16px/1 codicon;
+    display: inline-block;
+    text-decoration: none;
+    text-rendering: auto;
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fix PDF toolbar buttons */
+.pdftoolbar .btn {
+    background: transparent;
+    border: none !important;
+    color: #cccccc;
+    width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    margin: 0 4px;
+    cursor: pointer;
+    border-radius: 3px;
+    display: inline-flex;
     align-items: center;
-    z-index: 1000;
+    justify-content: center;
+    transition: background-color 0.2s;
+    position: relative;
+    flex-shrink: 0;
 }
 
-.modal-content {
-    background-color: var(--vscode-editor-background);
-    padding: 20px;
-    border-radius: 10px;  /* Match compile button's border-radius */
-    width: 80%;
-    max-width: 800px;
-    max-height: 80vh;
-    overflow-y: auto;
-    border: 2px solid #28a745;
-    box-shadow: 0 0 20px rgba(40, 167, 69, 0.7);
+/* Clear conflicting styles */
+.pdftoolbar .btn::after {
+    content: none;
 }
 
-.modal-header {
+/* Fix icon visibility */
+.pdftoolbar .btn::before {
+    font-family: 'codicon' !important;
+    font-size: 16px;
+    display: block !important;
+    position: static;
+    opacity: 1;
+    transform: none;
+    color: #cccccc;
+}
+
+/* Make sure no text is showing */
+.pdftoolbar .btn * {
+    display: none;
+}
+
+/* Ensure codicon font is loaded and applied correctly */
+@font-face {
+    font-family: 'codicon';
+    src: url('https://cdn.jsdelivr.net/npm/vscode-codicons@0.0.17/dist/codicon.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Fix toolbar layout */
+.pdftoolbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 32px;
+    background-color: #333333;
     display: flex;
-    justify-content: space-between;
+    flex-direction: row;  /* Ensure horizontal layout */
+    flex-wrap: nowrap;    /* Prevent wrapping to new line */
     align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #28a745;
+    justify-content: center;
+    padding: 0 8px;
+    border-bottom: 1px solid #444;
+    z-index: 101;
+    box-sizing: border-box;
 }
 
-.modal-close {
+/* Ensure buttons stay in line and have proper spacing */
+.pdftoolbar .btn {
+    background: transparent;
+    border: none;
+    color: #cccccc;
+    width: 24px;  /* Make buttons smaller */
+    height: 24px;
+    min-width: 24px;  /* Prevent collapsing */
+    padding: 0;
+    margin: 0 4px;  /* Add consistent horizontal spacing */
     cursor: pointer;
-    padding: 5px;
-    color: var(--vscode-foreground);
+    border-radius: 3px;
+    display: inline-flex;  /* Use inline-flex instead of flex */
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    position: relative;
+    flex-shrink: 0;  /* Prevent buttons from shrinking */
 }
 
-.modal-body {
-    font-family: var(--vscode-editor-font-family);
-    font-size: var(--vscode-editor-font-size);
-    color: var(--vscode-foreground);
+/* Make text spans (zoom value, page info) narrower but still visible */
+.pdftoolbar span {
+    color: #cccccc;
+    margin: 0 4px;
+    font-size: 12px;
+    white-space: nowrap;  /* Prevent wrapping */
+    flex-shrink: 0;  /* Prevent from shrinking */
+    display: inline-block;  /* Keep on same line */
 }
 
-/* Update readonly tree file items */
-.file-tree.readonly .file-item {
-    opacity: 0.8;
+.pdftoolbar .zoom-value,
+.pdftoolbar .page-info {
+    min-width: 36px;  /* Give minimum width for text */
+    text-align: center;
+}
+
+/* Fix the icon display for PDF toolbar buttons */
+.pdftoolbar .btn::before {
+    font-family: 'codicon';
+    font-size: 16px;
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Define specific icons for each button */
+.pdftoolbar .btn[data-action="zoomIn"]::before {
+    content: "\ea9d";  /* codicon-zoom-in */
+}
+
+.pdftoolbar .btn[data-action="zoomOut"]::before {
+    content: "\ea9c";  /* codicon-zoom-out */
+}
+
+.pdftoolbar .btn[data-action="prev"]::before {
+    content: "\eb1f";  /* codicon-chevron-left */
+}
+
+.pdftoolbar .btn[data-action="next"]::before {
+    content: "\eb1c";  /* codicon-chevron-right */
+}
+
+.pdftoolbar .btn[data-action="fit"]::before {
+    content: "\eb55";  /* codicon-layout-sidebar-right */
+}
+
+/* Remove the generic button::before that might be overriding specifics */
+.pdftoolbar .btn:not([data-action="zoomIn"]):not([data-action="zoomOut"]):not([data-action="prev"]):not([data-action="next"]):not([data-action="fit"])::before {
+    content: "";  /* Empty content for buttons without specific data-action */
+}
+
+/* Make toolbar button icons more visible */
+.pdftoolbar .btn::before {
+    font-family: 'codicon';
+    font-size: 16px;
+    display: inline-block !important;
+    color: white !important; /* Force white color for better visibility */
+    opacity: 1 !important;
+    text-shadow: 0 0 1px rgba(0,0,0,0.5); /* Add subtle shadow for contrast */
+}
+
+/* Define specific icons with !important to override any other styles */
+.pdftoolbar .btn[data-action="zoomIn"]::before {
+    content: "\ea9d" !important; /* codicon-zoom-in */
+}
+
+.pdftoolbar .btn[data-action="zoomOut"]::before {
+    content: "\ea9c" !important; /* codicon-zoom-out */
+}
+
+.pdftoolbar .btn[data-action="prev"]::before {
+    content: "\eb1f" !important; /* codicon-chevron-left */
+}
+
+.pdftoolbar .btn[data-action="next"]::before {
+    content: "\eb1c" !important; /* codicon-chevron-right */
+}
+
+.pdftoolbar .btn[data-action="fit"]::before {
+    content: "\eb55" !important; /* codicon-layout-sidebar-right */
+}
+
+/* Remove the conflicting pseudo-element styles */
+.pdftoolbar .btn::before {
+    content: none !important;
+}
+
+/* Style SVG icons */
+.pdftoolbar .btn svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+    fill: white;
+}
+
+/* Show the buttons properly */
+.pdftoolbar .btn {
+    background: transparent;
+    border: none !important;
+    width: 28px;
+    height: 28px;
+    padding: 0 !important;
+    margin: 0 4px;
     cursor: pointer;
-    transition: background-color 0.1s ease;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Folder focus/hover state */
-.file-tree.readonly .folder:hover > .file-item,
-.file-tree.readonly .folder:focus-within > .file-item {
-    background-color: var(--vscode-list-hoverBackground);
-    opacity: 1;
+.pdftoolbar .btn:hover {
+    background-color: #444444;
 }
 
-/* Files within focused folder */
-.file-tree.readonly .folder:hover > ul .file-item,
-.file-tree.readonly .folder:focus-within > ul .file-item {
-    background-color: var(--vscode-list-hoverBackground);
-    opacity: 0.6; /* Slightly dimmer than the folder */
+/* Make sure text spans are visible */
+.pdftoolbar span {
+    color: white;
+    margin: 0 4px;
+    font-size: 12px;
+    display: inline-block;
+    min-width: 36px;
+    text-align: center;
 }
 
-/* Individual file focus/hover state */
-.file-tree.readonly li:not(.folder) > .file-item:hover,
-.file-tree.readonly li:not(.folder) > .file-item:focus {
-    background-color: var(--vscode-list-hoverBackground);
-    opacity: 1;
+/* ---- Clean up duplicate toolbar styles ---- */
+/* Remove or comment out ALL existing pdftoolbar styles first */
+
+/* Start with clean toolbar styles */
+.pdftoolbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 32px;
+    background-color: #333333;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid #444;
+    z-index: 101;
+    padding: 0;
 }
 
-/* Active states */
-.file-tree.readonly .file-item.active {
-    background-color: var(--vscode-list-activeSelectionBackground);
-    color: var(--vscode-list-activeSelectionForeground);
-    opacity: 1;
+/* Clean button styles */
+.pdftoolbar .btn {
+    width: 28px;
+    height: 28px;
+    background-color: transparent;
+    border: none;
+    margin: 0 4px;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 3px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;  /* Text color for the Unicode symbols */
+    font-size: 18px;  /* Larger font for better visibility */
+    font-weight: bold;
 }
 
-/* Add the active state for when item is clicked */
-.file-tree.readonly .file-item.active {
-    background-color: var(--vscode-list-activeSelectionBackground);
-    color: var(--vscode-list-activeSelectionForeground);
-    opacity: 1;
+/* Button hover state */
+.pdftoolbar .btn:hover {
+    background-color: #444444;
 }
 
-/* Add focus outline */
-.file-tree.readonly .file-item:focus {
-    outline: 1px solid var(--vscode-focusBorder);
-    outline-offset: -1px;
+/* Button active state */
+.pdftoolbar .btn:active {
+    background-color: #505050;
+}
+
+/* Use direct SVG elements instead of pseudo-elements */
+.pdftoolbar .btn svg {
+    width: 16px;
+    height: 16px;
+    fill: white;
+    display: block;
+}
+
+/* Style text spans */
+.pdftoolbar .zoom-value,
+.pdftoolbar .page-info {
+    color: white;
+    font-size: 12px;
+    margin: 0 6px;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Position the viewer below the toolbar */
+.pdfjs-viewer {
+    position: absolute;
+    top: 32px;
+    right: 0;
+    width: 100%;
+    height: calc(100% - 32px);
+    background-color: #252526;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* Canvas styling */
+#pdf-canvas {
+    border: none;
+    margin: 10px auto;
+    background-color: #252526;
+    max-width: 95%;
+}
+
+/* Add this at the end of your CSS file to override any conflicts */
+
+/* Clean simple button styling */
+.btn-prev {
+    background-color: #333333 !important;
+    border: none !important;
+    color: white !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin: 0 4px !important;
+    cursor: pointer !important;
+    border-radius: 3px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+}
+
+/* Show hover effect */
+.btn-prev:hover {
+    background-color: #444444 !important;
+}
+
+/* Make the icon visible */
+.material-icons-outlined {
+    font-family: 'Material Icons Outlined', sans-serif !important;
+    font-size: 24px !important;
+    color: white !important;
+    display: inline-block !important;
+}
+
+/* If material icons aren't loading, add this to your HTML head */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Outlined');
+
+/* PDF viewer toolbar buttons - add this at the end of your CSS file */
+
+/* Base button style */
+.pdftoolbar .btn {
+    background-color: #333333 !important;
+    border: none !important;
+    color: white !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin: 0 4px !important;
+    cursor: pointer !important;
+    border-radius: 3px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.2s !important;
+}
+
+/* Hover effect */
+.pdftoolbar .btn:hover {
+    background-color: #444444 !important;
+}
+
+/* Make the Material Icons visible */
+.pdftoolbar .btn i.material-icons-outlined {
+    font-family: 'Material Icons Outlined', sans-serif !important;
+    font-size: 20px !important;
+    color: white !important;
+    display: inline-block !important;
+}
+
+/* Fix the Unicode symbol buttons */
+.pdftoolbar .btn:not(:has(i)) {
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
+
+/* Fix text spans */
+.pdftoolbar span:not(.btn) {
+    color: white !important;
+    font-size: 12px !important;
+    margin: 0 6px !important;
+    min-width: 40px !important;
+    text-align: center !important;
+}
+
+/* Clean up toolbar layout */
+.pdftoolbar {
+    background-color: #333333 !important;
+    padding: 4px 8px !important;
+    border-bottom: 1px solid #444 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Fix text alignment */
+.pdftoolbar .pageno,
+.pdftoolbar .zoomval {
+    display: inline-block !important;
+    line-height: 32px !important;
+    vertical-align: middle !important;
+}
+
+/* Fix PDF toolbar button styles to show ONLY icons */
+
+/* Hide all text content inside buttons */
+.pdftoolbar .btn * {
+    display: none !important;
+}
+
+/* But make the material icons visible */
+.pdftoolbar .btn i.material-icons-outlined {
+    display: inline-block !important;
+    font-size: 20px !important;
+    color: white !important;
+    font-family: 'Material Icons Outlined', sans-serif !important;
+}
+
+/* Enforce proper button styling */
+.pdftoolbar .btn {
+    background-color: #333333 !important;
+    border: none !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin: 0 4px !important;
+    cursor: pointer !important;
+    border-radius: 3px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+
+/* Button hover state */
+.pdftoolbar .btn:hover {
+    background-color: #444444 !important;
+}
+
+/* Make sure the span elements are visible */
+.pdftoolbar span:not(.btn):not(.material-icons-outlined) {
+    color: white !important;
+    font-size: 12px !important;
+    margin: 0 6px !important;
+    min-width: 40px !important;
+    text-align: center !important;
+    display: inline-block !important;
+}
+
+/* Add Material Icons font if not already loaded */
+@font-face {
+    font-family: 'Material Icons Outlined';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/materialiconsoutlined/v108/gok-H7zzDkdnRel8-DQ6KAXJ69wP1tGnf4ZGhUce.woff2) format('woff2');
+}
+
+/* Ensure the Material Icons are properly displayed */
+.material-icons-outlined {
+    font-family: 'Material Icons Outlined' !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    word-wrap: normal !important;
+    direction: ltr !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Reset all existing PDF toolbar styles first */
+/* Add this at the very end of your CSS file to override everything */
+
+/* CLEAN PDF TOOLBAR STYLES - FINAL VERSION */
+/* ---------------------------------------- */
+
+/* Basic toolbar container */
+.pdftoolbar {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 32px !important;
+    background-color: #333333 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 !important;
+    border-bottom: 1px solid #444 !important;
+    z-index: 101 !important;
+    box-sizing: border-box !important;
+}
+
+/* Fix column containers inside toolbar */
+.pdftoolbar .col-12 {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    flex: 0 1 auto !important;
+}
+
+/* Fix row inside toolbar */
+.pdftoolbar.row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+/* Button styling */
+.pdftoolbar .btn {
+    width: 32px !important;
+    height: 32px !important;
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 2px !important;
+    cursor: pointer !important;
+    border-radius: 3px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+
+/* Button hover effect */
+.pdftoolbar .btn:hover {
+    background-color: #444444 !important;
+}
+
+/* Hide all text content */
+.pdftoolbar .btn span {
+    display: none !important;
+}
+
+/* Show only material icons */
+.pdftoolbar .btn i.material-icons-outlined {
+    display: inline-block !important;
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    line-height: 18px !important;
+    color: white !important;
+    font-family: 'Material Icons Outlined', sans-serif !important;
+}
+
+/* Text spans for page numbers and zoom */
+.pdftoolbar .pageno,
+.pdftoolbar .zoomval {
+    color: white !important;
+    font-size: 12px !important;
+    margin: 0 4px !important;
+    min-width: 40px !important;
+    text-align: center !important;
+    font-family: 'Segoe UI', sans-serif !important;
+}
+
+/* Add this to the end of your CSS file to override the horizontal layout */
+.pdfjs-viewer {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* Target the PDF pages - make them stack vertically with spacing between */
+.pdfjs-viewer .pdfpage {
+  margin-bottom: 20px !important;
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
