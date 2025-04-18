@@ -1,5 +1,6 @@
 import { getEditors } from "./editorManager.js";
 import { ensurePDFJSReady, renderPDFPage, showPDFInIframe, configurePDFJS } from "./pdfjsManager.js";
+import { analyzeLatexLog } from "./projectManager.js";
 
 // Configura il worker di PDF.js
 configurePDFJS("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js");
@@ -254,10 +255,10 @@ export async function onclick_() {
     };
   }
 
-    worker.onmessage = ({ data : {pdf, log, print} }) =>
-    {
-        if(pdf)
-        {
+    worker.onmessage = ({ data }) => {
+        const { pdf, log, print, exit_code = 0, logs = [] } = data || {};
+
+        if (pdf) {
             previewElement.src = URL.createObjectURL(new Blob([pdf], {type: 'application/pdf'}));
             elapsedElement.innerText = ((performance.now() - tic) / 1000).toFixed(2) + ' sec';
             if (spinnerElement) {
@@ -268,131 +269,131 @@ export async function onclick_() {
             console.log('Compilation successful');
         }
 
-    if (print) {
-      console.log(print);
-    }
-
-    if (log) {
-      //console.error(log);
-      // DO NOTHING
-    }
-
-    if (exit_code != 0 && exit_code !== undefined) {
-      terminate();
-      const pdflatex_log_index = logs.length === 2 ? 0 : logs.length - 1;
-      const log = logs[pdflatex_log_index].log;
-      //bibEditor.setValue(log);
-
-      try {
-        const result = analyzeLatexLog(log);
-        if (result) {
-          // Rendi visibile il supportpane
-          const supportPane = document.getElementById("supportpane");
-          supportPane.style.display = "block"; // Cambia il display a block
-          // Ottieni l'istanza del Monaco Editor
-          const editor = monaco.editor.getModels()[0]; // Assumendo che ci sia un solo modello caricato
-          let decorations = []; // Array per tenere traccia delle decorazioni attive
-          // Popola il tab "Errors" e aggiungi decorazioni rosse
-          const errorsTab = document.getElementById("errors");
-
-          const errorDecorations = result.errors.map((error) => {
-
-            const errorItem = document.createElement("div");
-            errorItem.className = "item"; // Usa la classe CSS per gli item
-            if (error.line === null)
-              errorItem.textContent = `Error in file ${error.file}: ${error.message}`;
-            else
-              errorItem.textContent = `Error in file ${error.file} at line ${error.line}: ${error.message}`;
-            errorsTab.appendChild(errorItem);
-            // Aggiungi un listener per spostare il cursore
-            if (error.line != null) {
-              errorItem.addEventListener("click", () => {
-                if (texEditor) {
-                  texEditor.setPosition({ lineNumber: error.line, column: 1 }); // Sposta il cursore
-                  texEditor.revealLineInCenter(error.line); // Centra la riga nell'editor
-                } else {
-                  console.error("Monaco Editor non inizializzato!");
-                }
-              });
-              // Aggiungi decorazione per l'errore
-              return {
-                range: new monaco.Range(error.line, 1, error.line, 1),
-                options: {
-                  isWholeLine: true,
-                  className: "error-line", // Classe CSS per lo stile
-                  overviewRuler: {
-                    color: "rgba(255, 0, 0, 0.8)", // Colore rosso per la preview
-                    position: monaco.editor.OverviewRulerLane.Full, // Posizione nella preview
-                  },
-                },
-              };
-            }
-          });
-
-          // Popola il tab "Warnings" e aggiungi decorazioni gialle
-          const warningsTab = document.getElementById("warnings");
-          warningsTab.innerHTML = ""; // Svuota il contenuto precedente
-          const warningDecorations = result.warnings.map((warning) => {
-            const warningItem = document.createElement("div");
-            warningItem.className = "item"; // Usa la classe CSS per gli item
-            warningItem.textContent = `Warning in file ${warning.file} at line ${warning.line}: ${warning.message}`;
-            warningsTab.appendChild(warningItem);
-            // Aggiungi un listener per spostare il cursore
-            warningItem.addEventListener("click", () => {
-              if (texEditor) {
-                texEditor.setPosition({ lineNumber: warning.line, column: 1 }); // Sposta il cursore
-                texEditor.revealLineInCenter(warning.line); // Centra la riga nell'editor
-              } else {
-                console.error("Monaco Editor non inizializzato!");
-              }
-            });
-
-            // Aggiungi decorazione per il warning
-            return {
-              range: new monaco.Range(warning.line, 1, warning.line, 1),
-              options: {
-                isWholeLine: true,
-                className: "warning-line", // Classe CSS per lo stile
-                overviewRuler: {
-                  color: "rgba(255, 255, 0, 0.8)", // Colore giallo per la preview
-                  position: monaco.editor.OverviewRulerLane.Full, // Posizione nella preview
-                },
-              },
-            };
-          });
-
-          // Applica le decorazioni al Monaco Editor
-          decorations = texEditor.deltaDecorations(decorations, [...errorDecorations, ...warningDecorations]);
-
-          // Popola il tab "Typesetting" con il contenuto di typesetting
-          const typesettingTab = document.getElementById("typesetting");
-          typesettingTab.innerHTML = ""; // Svuota il contenuto precedente
-          result.typesetting.forEach((issue) => {
-            const typesettingItem = document.createElement("div");
-            typesettingItem.className = "item"; // Usa la classe CSS per gli item
-            typesettingItem.textContent = `Typesetting issue: ${issue.message}`;
-            typesettingTab.appendChild(typesettingItem);
-          });
-
-          // Popola il tab "Info" con il contenuto del log formattato in HTML
-          /*
-          * TODO: Il tab info deve essere popolato con il log anche quando non c'è errore?
-          */
-          const infoTab = document.getElementById("info");
-          infoTab.innerHTML = ""; // Svuota il contenuto precedente
-          const formattedLog = log
-            .split("\n")
-            .map((line) => `${line}<br>`) // Formatta ogni riga del log come un paragrafo
-            .join("");
-          infoTab.innerHTML = formattedLog;
-
-          console.log("Support pane updated with LaTeX log results.");
+        if (print) {
+            console.log(print);
         }
-      } catch (error) {
-        console.error("Error analyzing LaTeX log:", error);
-      }
-    }
-  };
+
+        if (log) {
+            //console.error(log);
+            // DO NOTHING
+        }
+
+        if (typeof exit_code === "number" && Array.isArray(logs) && exit_code !== 0) {
+            terminate();
+            const pdflatex_log_index = logs.length === 2 ? 0 : logs.length - 1;
+            const log = logs[pdflatex_log_index]?.log || "";
+            //bibEditor.setValue(log);
+
+            // Use .then for the promise-based analyzeLatexLog
+            analyzeLatexLog(log).then(result => {
+                if (result) {
+                    // Rendi visibile il supportpane
+                    const supportPane = document.getElementById("supportpane");
+                    supportPane.style.display = "block"; // Cambia il display a block
+                    // Ottieni l'istanza del Monaco Editor
+                    const editor = monaco.editor.getModels()[0]; // Assumendo che ci sia un solo modello caricato
+                    let decorations = []; // Array per tenere traccia delle decorazioni attive
+                    // Popola il tab "Errors" e aggiungi decorazioni rosse
+                    const errorsTab = document.getElementById("errors");
+
+                    const errorDecorations = result.errors.map((error) => {
+
+                        const errorItem = document.createElement("div");
+                        errorItem.className = "item"; // Usa la classe CSS per gli item
+                        if (error.line === null)
+                            errorItem.textContent = `Error in file ${error.file}: ${error.message}`;
+                        else
+                            errorItem.textContent = `Error in file ${error.file} at line ${error.line}: ${error.message}`;
+                        errorsTab.appendChild(errorItem);
+                        // Aggiungi un listener per spostare il cursore
+                        if (error.line != null) {
+                            errorItem.addEventListener("click", () => {
+                                if (texEditor) {
+                                    texEditor.setPosition({ lineNumber: error.line, column: 1 }); // Sposta il cursore
+                                    texEditor.revealLineInCenter(error.line); // Centra la riga nell'editor
+                                } else {
+                                    console.error("Monaco Editor non inizializzato!");
+                                }
+                            });
+                            // Aggiungi decorazione per l'errore
+                            return {
+                                range: new monaco.Range(error.line, 1, error.line, 1),
+                                options: {
+                                    isWholeLine: true,
+                                    className: "error-line", // Classe CSS per lo stile
+                                    overviewRuler: {
+                                        color: "rgba(255, 0, 0, 0.8)", // Colore rosso per la preview
+                                        position: monaco.editor.OverviewRulerLane.Full, // Posizione nella preview
+                                    },
+                                },
+                            };
+                        }
+                    });
+
+                    // Popola il tab "Warnings" e aggiungi decorazioni gialle
+                    const warningsTab = document.getElementById("warnings");
+                    warningsTab.innerHTML = ""; // Svuota il contenuto precedente
+                    const warningDecorations = result.warnings.map((warning) => {
+                        const warningItem = document.createElement("div");
+                        warningItem.className = "item"; // Usa la classe CSS per gli item
+                        warningItem.textContent = `Warning in file ${warning.file} at line ${warning.line}: ${warning.message}`;
+                        warningsTab.appendChild(warningItem);
+                        // Aggiungi un listener per spostare il cursore
+                        warningItem.addEventListener("click", () => {
+                            if (texEditor) {
+                                texEditor.setPosition({ lineNumber: warning.line, column: 1 }); // Sposta il cursore
+                                texEditor.revealLineInCenter(warning.line); // Centra la riga nell'editor
+                            } else {
+                                console.error("Monaco Editor non inizializzato!");
+                            }
+                        });
+
+                        // Aggiungi decorazione per il warning
+                        return {
+                            range: new monaco.Range(warning.line, 1, warning.line, 1),
+                            options: {
+                                isWholeLine: true,
+                                className: "warning-line", // Classe CSS per lo stile
+                                overviewRuler: {
+                                    color: "rgba(255, 255, 0, 0.8)", // Colore giallo per la preview
+                                    position: monaco.editor.OverviewRulerLane.Full, // Posizione nella preview
+                                },
+                            },
+                        };
+                    });
+
+                    // Applica le decorazioni al Monaco Editor
+                    decorations = texEditor.deltaDecorations(decorations, [...errorDecorations, ...warningDecorations]);
+
+                    // Popola il tab "Typesetting" con il contenuto di typesetting
+                    const typesettingTab = document.getElementById("typesetting");
+                    typesettingTab.innerHTML = ""; // Svuota il contenuto precedente
+                    result.typesetting.forEach((issue) => {
+                        const typesettingItem = document.createElement("div");
+                        typesettingItem.className = "item"; // Usa la classe CSS per gli item
+                        typesettingItem.textContent = `Typesetting issue: ${issue.message}`;
+                        typesettingTab.appendChild(typesettingItem);
+                    });
+
+                    // Popola il tab "Info" con il contenuto del log formattato in HTML
+                    /*
+                    * TODO: Il tab info deve essere popolato con il log anche quando non c'è errore?
+                    */
+                    const infoTab = document.getElementById("info");
+                    infoTab.innerHTML = ""; // Svuota il contenuto precedente
+                    const formattedLog = log
+                        .split("\n")
+                        .map((line) => `${line}<br>`) // Formatta ogni riga del log come un paragrafo
+                        .join("");
+                    infoTab.innerHTML = formattedLog;
+
+                    console.log("Support pane updated with LaTeX log results.");
+                }
+            }).catch(error => {
+                console.error("Error analyzing LaTeX log:", error);
+            });
+        }
+    };
 
   if (reload)
     worker.postMessage({

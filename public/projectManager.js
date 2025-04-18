@@ -162,3 +162,18 @@ export async function switchProject(projectName) {
 
     return getCurrentProjectFiles();
 }
+
+// Add this export if not already present
+export function analyzeLatexLog(log) {
+  return new Promise((resolve, reject) => {
+    require(['lib/latex-log-parser'], function (LatexParser) {
+      try {
+        const options = { ignoreDuplicates: true };
+        const result = LatexParser.parse(log, options);
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+}
