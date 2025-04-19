@@ -508,7 +508,7 @@ class BusytexPipeline
         const pdftex    = ['pdflatex',   '--no-shell-escape', '--synctex=1', '--interaction=nonstopmode', 
            // '--halt-on-error', 
             '--output-format=pdf', '--fmt', this.fmt.pdftex, tex_path].concat((this.verbose_args[verbose] || this.verbose_args[BusytexPipeline.VerboseSilent]).pdftex);
-        const pdftex_not_final    = ['pdflatex',   '--no-shell-escape', '--synctex=1', '--interaction=batchmode', 
+        const pdftex_not_final    = ['pdflatex',   '--no-shell-escape', '--synctex=1', '--interaction=nonstopmode', 
            // '--halt-on-error', 
             '--fmt', this.fmt.pdftex, tex_path].concat((this.verbose_args[verbose] || this.verbose_args[BusytexPipeline.VerboseSilent]).pdftex);
         
@@ -725,6 +725,11 @@ class BusytexPipeline
         */
         // Restituisce il risultato della compilazione insieme al contenuto della directory
         const pdf = exit_code == 0 ? this.read_all_bytes(FS, pdf_path) : null;
+        
+        // Leggo il contenuto del file .synctex.gz e lo restituisco nel messaggio
+        const synctex_path = PATH.join(this.project_dir, tex_path.replace('.tex', '.synctex.gz'));
+        const synctex = this.read_all_bytes(FS, synctex_path);
+        
         const logcat = logs.map(({ cmd, texmflog, missfontlog, log, exit_code, stdout, stderr }) => ([`$ ${cmd}`, `EXITCODE: ${exit_code}`, '', 'TEXMFLOG:', texmflog, '==', 'MISSFONTLOG:', missfontlog, '==', 'LOG:', log, '==', 'STDOUT:', stdout, '==', 'STDERR:', stderr, '======'].join('\n'))).join('\n\n');
 
         this.Module = this.preload == false ? null : this.Module;
@@ -733,7 +738,7 @@ class BusytexPipeline
         return { pdf: pdf, log: logcat, exit_code: exit_code, logs: logs, directoryContents: directoryContents };
         */
                 
-        return { pdf: pdf, log: logcat, exit_code: exit_code, logs: logs};
+        return { pdf: pdf, synctex: synctex, log: logcat, exit_code: exit_code, logs: logs};
 
     }
 }

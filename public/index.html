@@ -101,77 +101,16 @@
               </div>
         </div>
         <div id="preview-container">
-            <div id="pdf-viewer">
-              <!-- <div id="pdf-controls">
-                <button id="prev-page">Previous</button>
-                <span>Page: <span id="page-num"></span> / <span id="page-count"></span></span>
-                <button id="next-page">Next</button>
-              </div>
-              <canvas id="pdf-canvas"></canvas> 
-            </div>-->
-            
-            <div class="row col-6 offset-md-3 pdfviewer p-0 row h-100">
-              <div class="pdftoolbar text-center row m-0 p-0">
-                <div class="col-12 col-lg-6 my-1">
-                  <button class="btn btn-secondary btn-sm" onclick="pdfViewer.first()">
-                    <i class="material-icons-outlined">skip_previous</i>
-                  </button>
-                  <button class="btn btn-secondary btn-sm" onclick="pdfViewer.prev(); return false;">
-                    <i class="material-icons-outlined">navigate_before</i>
-                  </button>
-                  <span class="pageno"></span>
-                  <button class="btn btn-secondary btn-sm" onclick="pdfViewer.next(); return false;">
-                    <i class="material-icons-outlined">navigate_next</i>
-                  </button>
-                  <button class="btn btn-secondary btn-sm" onclick="pdfViewer.last()">
-                    <i class="material-icons-outlined">skip_next</i>
-                  </button>
-                </div>
-                <div class="col-12 col-lg-6 my-1">
-                  <button class="btn btn-secondary btn-sm" onclick="pdfViewer.setZoom('out')">
-                    <i class="material-icons-outlined">zoom_out</i>
-                  </button>
-                  <span class="zoomval">100%</span>
-                  <button class="btn btn-secondary btn-sm" onclick="pdfViewer.setZoom('in')">
-                    <i class="material-icons-outlined">zoom_in</i>
-                  </button>
-                  <button class="btn btn-secondary btn-sm ms-3" onclick="pdfViewer.setZoom('width')">
-                    <i class="material-icons-outlined">swap_horiz</i>
-                  </button>
-                  <button class="btn btn-secondary btn-sm" onclick="pdfViewer.setZoom('height')">
-                    <i class="material-icons-outlined">swap_vert</i>
-                  </button>
-                  <button class="btn btn-secondary btn-sm" onclick="pdfViewer.setZoom('fit')">
-                    <i class="material-icons-outlined">fit_screen</i>
-                  </button>
-                </div>
-              </div>
-              <div class="pdfjs-viewer h-100">
-              </div>
-            </div>
-
-
-
-            <iframe id="preview"></iframe>
-            <div id="spinner">
-                <img src="spinner.gif" alt="Loading...">
-            </div>
+          <iframe id="pdfViewer" src="./web/viewer.html" title="PDF Preview"></iframe>
+          <div id="spinner">
+            <img src="spinner.gif" alt="Loading...">
+          </div>
         </div>
     </div>
     <div><button class="compile" id="compile-button">Compile</button></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.21.2/min/vs/loader.min.js"></script>
 <script type="module" src="main.js"></script>
-<script>
-  let pdfViewer = new PDFjsViewer($(".pdfjs-viewer"), {
-  onZoomChange: function (zoom) {
-    zoom = parseInt(zoom * 10000) / 100;
-    $(".zoomval").text(zoom + "%");
-  },
-  onActivePageChanged: function (page, pageno) {
-    $(".pageno").text(pageno + "/" + this.getPageCount());
-  }
-});
-</script>
+<script src="./pdfViewerMessageManager.js"></script>
 </body>
 </html>

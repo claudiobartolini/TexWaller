@@ -1,8 +1,14 @@
 import { getEditors } from "./editorManager.js";
-import { ensurePDFJSReady, renderPDFPage, showPDFInIframe, configurePDFJS } from "./pdfjsManager.js";
+//import { ensurePDFJSReady, renderPDFPage, showPDFInIframe, configurePDFJS } from "./pdfjsManager.js";
+import { handleReverseSyncTeX } from './manageSynctex.js';
+import { parseSyncTex } from "./lib/synctexParser.js";
+import * as pako from 'https://cdn.jsdelivr.net/npm/pako@2.1.0/+esm';
+
+// Importa la funzione handleReverseSyncTeX
+//import { handleReverseSyncTeX, convertToSyncTeXCoordinates } from './handleReverseSyncTeX_synctexjs.js';
 
 // Configura il worker di PDF.js
-configurePDFJS("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js");
+//configurePDFJS("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js");
 
 // Module-level variables and constants
 const paths_list = Array.from(document.head.getElementsByTagName("link"))
@@ -30,6 +36,7 @@ let autoCheckbox = null;
 let previewElement = null;
 let elapsedElement = null;
 let ubuntuPackageCheckboxes = null;
+let pdfSyncObject = null;
 
 
 // Initialize all UI elements first
@@ -71,6 +78,53 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }, 100);
 });
+
+// --- Listener per Reverse SyncTeX ---
+window.addEventListener('message', async (event) => {
+  // Non processare messaggi da noi stessi o dall'iframe sbagliato
+  if (event.source === window || !event.data || event.data.type !== 'reverseSyncTeXRequest') {
+    return;
+  }
+
+  // IMPORTANTE: Verifica l'origine per sicurezza in produzione!
+  // const expectedIframeOrigin = new URL(document.getElementById('pdfViewer').src).origin;
+  // if (event.origin !== expectedIframeOrigin) {
+  //   console.warn("Messaggio 'reverseSyncTeXRequest' ignorato da origine non attesa:", event.origin);
+  //   return;
+  // }
+
+  const { page, pdfX, pdfY } = event.data;
+  console.log(`[compileManager] Ricevuto reverseSyncTeXRequest: Pagina ${page}, X=${pdfX}, Y=${pdfY}`);
+
+  if (!pdfSyncObject) {
+    console.warn("[compileManager] Dati SyncTeX (pdfSyncObject) non ancora disponibili.");
+    // Potresti voler notificare l'utente qui
+    return;
+  }
+
+  if (!texEditor) {
+      console.error("[compileManager] texEditor non inizializzato.");
+      return;
+  }
+
+  try {
+    const result = await handleReverseSyncTeX(pdfSyncObject, [pdfX, pdfY], page);
+    if (result && result.lineNumber) {
+      console.log(`[compileManager] Risultato Reverse SyncTeX: Riga ${result.lineNumber}, File: ${result.sourceFilePath}`);
+      // Qui assumiamo che il file sia sempre quello nel texEditor principale.
+      // Potrebbe essere necessario aggiungere logica se ci sono più file TeX.
+      texEditor.revealLineInCenter(result.lineNumber);
+      texEditor.setPosition({ lineNumber: result.lineNumber, column: 1 });
+      texEditor.focus(); // Porta il focus all'editor
+    } else {
+      console.warn("[compileManager] Reverse SyncTeX non ha prodotto un risultato valido.");
+      // Potresti voler notificare l'utente
+    }
+  } catch (error) {
+    console.error("[compileManager] Errore durante l'esecuzione di handleReverseSyncTeX:", error);
+  }
+});
+// --- Fine Listener per Reverse SyncTeX ---
 
 // Export the necessary functions
 export async function onclick_() {
@@ -255,67 +309,40 @@ export async function onclick_() {
     };
   }
 
-  worker.onmessage = async ({ data: { pdf, log, exit_code, logs, print } }) => {
+  worker.onmessage = async ({ data: { pdf, log, exit_code, logs, print, synctex } }) => {
+    pdfSyncObject = null;
+
     if (pdf) {
-      /*
-      previewElement.src = URL.createObjectURL(
-        new Blob([pdf], { type: "application/pdf" })
-      );
-      */
       const pdfBlob = new Blob([pdf], { type: "application/pdf" });
       const pdfUrl = URL.createObjectURL(pdfBlob);
       console.log("PDF URL:", pdfUrl);
-      //document.getElementById("pdfjs-viewer-element").src = pdfUrl;
-      
-      console.log("PDF.js is ready, rendering PDF");
 
-      pdfViewer
-        .loadDocument(pdfUrl)
-        .then(function () {
-          pdfViewer.setZoom("fit");
-        });
+      const pdfViewer = document.getElementById('pdfViewer');
 
+      // Define sendMessage function here
+      const sendMessage = () => {
+          pdfViewer.contentWindow.postMessage({ type: 'loadPDF', fileURL: pdfUrl }, '*');
+          console.log('Messaggio postMessage inviato all\'iframe con URL:', pdfUrl);
+      };
 
-/*
-      ensurePDFJSReady()
-        .then(() => {
-          console.log("PDF.js is ready, rendering PDF");
+      // Check if iframe is ready before sending the message
+      if (pdfViewer.contentWindow && pdfViewer.contentWindow.location.href !== 'about:blank') {
+        sendMessage();
+      } else {
+        // Se l'iframe non è pronto, aspetta l'evento onload
+        console.log("Iframe non ancora pronto, attendo onload...");
+        pdfViewer.onload = () => {
+          console.log("Iframe caricato, invio messaggio postMessage...");
+          sendMessage();
+          // Rimuovi l'handler per evitare chiamate multiple
+          pdfViewer.onload = null;
+        };
+        // Se l'iframe non aveva src o era about:blank, assicurati che carichi viewer.html
+        if (pdfViewer.src === 'about:blank' || !pdfViewer.src) {
+          pdfViewer.src = './web/viewer.html';
+        }
+      }
 
-          let pdfViewer = new PDFjsViewer($(".pdfjs-viewer"), {
-            onZoomChange: function (zoom) {
-              zoom = parseInt(zoom * 10000) / 100;
-              $(".zoomval").text(zoom + "%");
-            },
-            onActivePageChanged: function (page, pageno) {
-              $(".pageno").text(pageno + "/" + this.getPageCount());
-            }
-          });
-          pdfViewer
-            .loadDocument(pdfUrl)
-            .then(function () {
-              pdfViewer.setZoom("fit");
-            });
-     
-            
-
-
-///////////////////////////////////
-          const loadingTask = pdfjsLib.getDocument(pdfUrl);
-          loadingTask.promise
-            .then((pdfDoc) => {
-              renderPDFPage(pdfDoc, 1); // Renderizza la prima pagina
-            })
-            .catch((error) => {
-              console.error("Error rendering PDF:", error);
-            });
-///////////////////////////////////
-        })
-        .catch((error) => {
-          console.error("Failed to initialize PDF.js:", error);
-          showPDFInIframe(pdfUrl); // Usa l'iframe come fallback
-        });
-
-*/
       elapsedElement.innerText =
         ((performance.now() - tic) / 1000).toFixed(2) + " sec";
       if (spinnerElement) {
@@ -324,6 +351,27 @@ export async function onclick_() {
       compileButton.classList.remove("compiling");
       compileButton.innerText = "Compile";
       console.log("Compilation successful");
+    }
+
+    if (synctex && synctex.byteLength > 0) {
+      console.log("[compileManager] Ricevuti dati SyncTeX dal worker.");
+      try {
+        const decompressedData = pako.ungzip(synctex, { to: "string" });
+        pdfSyncObject = parseSyncTex(decompressedData);
+        if (!pdfSyncObject) {
+          console.error("[compileManager] Errore durante l'analisi del file SyncTeX decompresso.");
+          pdfSyncObject = null;
+        } else {
+          console.log("[compileManager] Dati SyncTeX parsati e memorizzati.");
+        }
+      } catch (err) {
+        console.error("[compileManager] Errore durante la decompressione o l'analisi di SyncTeX:", err);
+        pdfSyncObject = null;
+      }
+    } else if (synctex) {
+        console.warn("[compileManager] Dati SyncTeX ricevuti ma vuoti.");
+    } else {
+        console.log("[compileManager] Nessun dato SyncTeX ricevuto dal worker.");
     }
 
     if (print) {
@@ -487,104 +535,6 @@ export function terminate() {
   }
 }
 
-/*
-// Function to ensure PDF.js is ready to use
-function ensurePDFJSReady() {
-  return new Promise((resolve, reject) => {
-    let attempts = 0;
-    const maxAttempts = 5;
-    const interval = 500; // Millisecondi tra i tentativi
-
-    const checkPDFJS = () => {
-      attempts++;
-      if (typeof pdfjsLib !== "undefined") {
-        resolve();
-      } else if (attempts >= maxAttempts) {
-        reject(new Error("PDF.js is not available after 5 attempts"));
-      } else {
-        setTimeout(checkPDFJS, interval);
-      }
-    };
-
-    checkPDFJS();
-  });
-}
-
-// Function to render a specific page of a PDF document
-function renderPDFPage(pdfDoc, pageNumber) {
-  try {
-    console.log(`Rendering PDF page ${pageNumber}`);
-    
-    // Get the specified page
-    pdfDoc.getPage(pageNumber).then(page => {
-      const canvas = document.getElementById("pdf-canvas");
-      if (!canvas) {
-        console.error("Canvas element not found");
-        return;
-      }
-      
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        console.error("Could not get canvas context");
-        return;
-      }
-      
-      // Set scale for better resolution
-      const scale = 1.5;
-      const viewport = page.getViewport({ scale });
-      
-      // Set canvas dimensions to match the viewport
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      
-      // Render the PDF page to the canvas
-      const renderContext = {
-        canvasContext: ctx,
-        viewport: viewport
-      };
-      
-      page.render(renderContext).promise.then(() => {
-        console.log("Page rendered successfully");
-      }).catch(error => {
-        console.error("Error rendering page:", error);
-      });
-    }).catch(error => {
-      console.error(`Error getting page ${pageNumber}:`, error);
-    });
-  } catch (error) {
-    console.error("Error in renderPDFPage:", error);
-  }
-}
-
-// Function to show PDF in iframe as fallback
-function showPDFInIframe(pdfUrl) {
-  try {
-    console.log("Falling back to iframe PDF viewer");
-    
-    const previewContainer = document.getElementById("preview-container");
-    if (!previewContainer) {
-      console.error("Preview container not found");
-      return;
-    }
-    
-    // Clear the container
-    previewContainer.innerHTML = "";
-    
-    // Create an iframe to display the PDF
-    const iframe = document.createElement("iframe");
-    iframe.src = pdfUrl;
-    iframe.style.width = "100%";
-    iframe.style.height = "100%";
-    iframe.style.border = "none";
-    
-    // Add the iframe to the container
-    previewContainer.appendChild(iframe);
-    console.log("PDF iframe added to container");
-  } catch (error) {
-    console.error("Error in showPDFInIframe:", error);
-  }
-}
-*/
 export function analyzeLatexLog(log) {
   return new Promise((resolve, reject) => {
     require(['lib/latex-log-parser'], function (LatexParser) {
