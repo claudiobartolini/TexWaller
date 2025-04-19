@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
-import { loadProjectsFromFirestore, explorerTree } from './projectManager.js';
+import { loadProjectAndWorkbenchFromFirestore, } from './projectManager.js';
 import { initializeEditor } from './editorManager.js';
 import { renderFileExplorer, setupContextMenuHandlers } from './uiManager.js';
 import { onclick_, terminate } from './compileManager.js';  // Add this import
@@ -7,9 +7,9 @@ import { onclick_, terminate } from './compileManager.js';  // Add this import
 // Load projects and initialize UI
 async function initApp() {
     try {
-        const uiState = await loadProjectsFromFirestore();
+        const uiState = await loadProjectAndWorkbenchFromFirestore();
         initializeEditor();
-        renderFileExplorer(document.getElementById('file-tree'), explorerTree, uiState);
+        renderFileExplorer(document.getElementById('file-tree'), uiState);
         setupContextMenuHandlers();
 
        /*

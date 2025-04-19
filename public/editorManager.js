@@ -1,12 +1,7 @@
 import { 
-    loadProjectsFromFirestore, 
     mainTexFile,
     getCurrentProjectFiles,
-    persistCurrentProjectToFirestore,
-    currentProject,
-    explorerTree 
 } from './projectManager.js';
-import { renderFileExplorer } from './uiManager.js';
 import { collection, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 
@@ -24,30 +19,12 @@ export function initializeEditor() {
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.21.2/min/vs' }});
     require(['vs/editor/editor.main'], async function() {
         try {
-            // Load projects first
-            await loadProjectsFromFirestore();
-
-            // Initialize content variables
+            // Initialize default content
             const defaultTexContent = "\\documentclass{article}\n\\begin{document}\n\\end{document}";
             const defaultBibContent = "@article{example,\n  author = {Author},\n  title = {Title},\n  year = {2024}\n}";
 
-            let texContent = defaultTexContent;
-            let bibContent = defaultBibContent;
-
-            // Try to load content from current project
-            const currentProjectFiles = getCurrentProjectFiles();
-            if (currentProject && currentProjectFiles) {
-                if (mainTexFile && currentProjectFiles[mainTexFile]) {
-                    texContent = currentProjectFiles[mainTexFile];
-                }
-                
-                // Find the first .bib file in the project
-                const bibFile = Object.entries(currentProjectFiles)
-                    .find(([key, _]) => key.endsWith('.bib'));
-                if (bibFile) {
-                    bibContent = bibFile[1];
-                }
-            }
+            // Fetch content from Firebase
+            const { texContent, bibContent } = await fetchEditorContent();
 
             // Register LaTeX language
             monaco.languages.register({ id: 'latex' });
@@ -63,9 +40,9 @@ export function initializeEditor() {
                 }
             });
 
-            // Create editors - only once
+            // Create editors with fetched content or defaults
             texEditor = monaco.editor.create(document.getElementById('tex-editor'), {
-                value: texContent,
+                value: texContent || defaultTexContent,
                 language: 'latex',
                 theme: 'vs-dark',
                 wordWrap: 'on',
@@ -73,7 +50,7 @@ export function initializeEditor() {
             });
 
             bibEditor = monaco.editor.create(document.getElementById('bib-editor'), {
-                value: bibContent,
+                value: bibContent || defaultBibContent,
                 language: 'bibtex',
                 theme: 'vs-dark',
                 wordWrap: 'on',
@@ -118,10 +95,6 @@ export function initializeEditor() {
                 editorContainer.style.zIndex = '1';
             });
 
-            // Initialize file explorer with explorerTree instead of fileStructure
-            const explorerContainer = document.getElementById("file-tree");
-            renderFileExplorer(explorerContainer, explorerTree);
-
             // Set initial focus
             texEditor.focus();
 
@@ -134,11 +107,11 @@ export function initializeEditor() {
 
 async function fetchEditorContent() {
     try {
-        const docRef = doc(collection(db, "documents"), "default");
-        const docSnap = await getDoc(docRef);
+        const editRef = doc(collection(db, "editors"), "default");
+        const editSnap = await getDoc(editRef);
 
-        if (docSnap.exists()) {
-            const data = docSnap.data();
+        if (editSnap.exists()) {
+            const data = editSnap.data();
             lastSavedContent = {
                 tex: data.tex || '',
                 bib: data.bib || ''
@@ -171,7 +144,7 @@ async function saveEditorContent() {
             return;
         }
 
-        await setDoc(doc(db, "documents", "default"), {
+        await setDoc(doc(db, "editors", "default"), {
             tex: newTexContent,
             bib: newBibContent,
             lastModified: new Date().toISOString()
@@ -182,9 +155,9 @@ async function saveEditorContent() {
             bib: newBibContent
         };
 
-        console.log("Document saved successfully!");
+        console.log("Editors content saved successfully!");
     } catch (error) {
-        console.error("Error saving document:", error);
+        console.error("Error saving editors content:", error);
         isOffline = true;
     }
 }
